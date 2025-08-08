@@ -7,7 +7,23 @@
 
 ## Overview
 
-This add-on integrates Drupal Ai into your [DDEV](https://ddev.com/) project.
+**This the WIP repo that currently contains only the scaffold for the brand-new add-on**
+
+This add-on integrates Drupal Ai into your [DDEV](https://ddev.com/) project, and it is designed 
+to support contribution to the Drupal AI module ecosystem. It acts as a glue layer, streamlining 
+the setup and orchestrating the AI capabilities in Drupal development environments.
+
+With this add-on, you can:
+
+* Run interactive workflows to install AI "recipes" (choose provider → functionality → setup).
+* Easily request and install additional AI-related add-ons (e.g., `unstructured`, `pgvector`).
+* Access a new official **pgvector** add-on for vector database capabilities in Drupal AI projects.
+
+**Architecture**
+
+* **Glue Add-on**: Works as a meta-tool inside DDEV.
+* **Interactive CLI**: Provides guided installation and configuration of AI tools.
+* **Recipe Management**: Handles dependencies and orchestrates pre-built AI workflows.
 
 ## Installation
 
