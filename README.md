@@ -7,7 +7,7 @@
 
 ## Overview
 
-**This the WIP repo that currently contains only the scaffold for the brand-new add-on**
+**This WIP repo currently contains only the scaffold for the brand-new add-on**
 
 This add-on integrates Drupal Ai into your [DDEV](https://ddev.com/) project, and it is designed 
 to support contribution to the Drupal AI module ecosystem. It acts as a glue layer, streamlining 
