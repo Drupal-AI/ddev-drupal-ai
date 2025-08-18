@@ -219,7 +219,7 @@ teardown() {
   assert_success
   
   # Test that all required providers have proper structure
-  local providers=("openai" "anthropic" "ollama" "azure_openai" "google_gemini")
+  local providers=("openai" "anthropic" "ollama" "google_gemini")
   
   for provider in "${providers[@]}"; do
     run yq eval ".providers.${provider}.name" .ddev/drupal-ai/configs/providers.yaml

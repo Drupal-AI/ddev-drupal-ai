@@ -1,5 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
+## #ddev-generated
 # Install add-on script
 # Usage: install-addon.sh <addon_name>
 
@@ -38,27 +39,27 @@ log_error() {
 # Install specific add-on
 install_addon() {
     local addon="$1"
-    
+
     if [[ -z "$addon" ]]; then
         log_error "Add-on name is required"
         return 1
     fi
-    
+
     log_info "Installing add-on: $addon"
-    
+
     # Check if add-on is already installed (check by identifier pattern)
     if check_addon_installed "$addon"; then
         log_warning "Add-on $addon is already installed"
         return 0
     fi
-    
+
     # Install using ddev add-on get (addon parameter is now the full identifier)
     if ddev add-on get "$addon"; then
         log_success "Successfully installed $addon"
-        
+
         # Run post-install configuration if needed
         configure_addon "$addon"
-        
+
         return 0
     else
         log_error "Failed to install $addon"
@@ -69,7 +70,7 @@ install_addon() {
 # Check if add-on is already installed
 check_addon_installed() {
     local addon="$1"
-    
+
     case "$addon" in
         "pgvector")
             # Check for robertoperuzzo/ddev-pgvector add-on
@@ -95,7 +96,7 @@ check_addon_installed() {
 # Configure add-on after installation
 configure_addon() {
     local addon="$1"
-    
+
     case "$addon" in
         "pgvector")
             log_info "Configuring PostgreSQL with pgvector extension..."
@@ -119,13 +120,13 @@ configure_addon() {
 # Validate add-on installation
 validate_installation() {
     local addon="$1"
-    
+
     log_info "Validating installation of $addon..."
-    
+
     # Check if services start properly
     if ddev restart; then
         log_success "Services restarted successfully"
-        
+
         # Additional validation based on add-on type
         case "$addon" in
             "pgvector")
@@ -159,14 +160,14 @@ validate_installation() {
 # Remove add-on
 remove_addon() {
     local addon="$1"
-    
+
     if [[ -z "$addon" ]]; then
         log_error "Add-on name is required"
         return 1
     fi
-    
+
     log_warning "Removing add-on: $addon"
-    
+
     # Find and remove docker-compose files
     local compose_files=()
     case "$addon" in
@@ -186,7 +187,7 @@ remove_addon() {
             compose_files+=("${DDEV_APPROOT}/.ddev/docker-compose.${addon}.yaml")
             ;;
     esac
-    
+
     local removed_files=0
     for file in "${compose_files[@]}"; do
         if [[ -f "$file" ]]; then
@@ -195,7 +196,7 @@ remove_addon() {
             ((removed_files++))
         fi
     done
-    
+
     if [[ $removed_files -gt 0 ]]; then
         log_success "Add-on $addon removed successfully"
         log_info "Run 'ddev restart' to apply changes"
@@ -208,12 +209,12 @@ remove_addon() {
 main() {
     local action="${1:-install}"
     local addon="${2:-}"
-    
+
     if [[ -z "$addon" ]]; then
         log_error "Usage: $0 [install|remove|validate] <addon_name>"
         exit 1
     fi
-    
+
     case "$action" in
         "install")
             install_addon "$addon"

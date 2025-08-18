@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ## #ddev-generated
 ## Description: Interactive CLI orchestration tool for Drupal AI workflows
@@ -149,50 +149,58 @@ list_installed_addons() {
 
 # Interactive provider selection
 select_provider() {
-    echo -e "\n${PURPLE}🤖 Drupal AI Setup Wizard${NC}"
-    echo "========================"
-    echo ""
-    echo "Step 1: Select AI Provider"
+    echo -e "\n${PURPLE}🤖 Drupal AI Setup Wizard${NC}" >&2
+    echo "========================" >&2
+    echo "" >&2
+    echo "Step 1: Select AI Provider" >&2
 
     if [[ ! -f "${CONFIGS_DIR}/providers.yaml" ]]; then
         log_error "Providers configuration not found"
         exit 1
     fi
 
+    log_info "What AI provider do you want? (Enter a number)" >&2
+
     local providers=()
     local provider_keys=()
+    local counter=1
 
     while IFS= read -r provider; do
         local name=$(yq eval ".providers.${provider}.name" "${CONFIGS_DIR}/providers.yaml")
         local description=$(yq eval ".providers.${provider}.description" "${CONFIGS_DIR}/providers.yaml")
-        providers+=("${name} - ${description}")
+        echo "  ${counter}. ${name} - ${description}" >&2
+        providers+=("${name}")
         provider_keys+=("${provider}")
+        ((counter++))
     done < <(yq eval '.providers | keys | .[]' "${CONFIGS_DIR}/providers.yaml")
 
-    echo "? Choose your AI provider:"
-    select choice in "${providers[@]}"; do
-        if [[ -n "$choice" ]]; then
-            local selected_index=$((REPLY - 1))
-            local selected_provider="${provider_keys[$selected_index]}"
-            echo "Selected: $choice"
-            echo "$selected_provider"
-            return
-        fi
-    done
+    echo -n "Your selection: " >&2
+    read -r selection
+
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le "${#provider_keys[@]}" ]]; then
+        local selected_index=$((selection - 1))
+        local selected_provider="${provider_keys[$selected_index]}"
+        echo "Selected: ${providers[$selected_index]}" >&2
+        echo "$selected_provider"
+        return
+    else
+        log_error "Invalid selection. Please try again." >&2
+        exit 1
+    fi
 }
 
 # Interactive functionality selection
 select_functionalities() {
     local provider="$1"
-    echo ""
-    echo "Step 2: Select Functionality"
+    echo "" >&2
+    echo "Step 2: Select Functionality" >&2
 
     if [[ ! -f "${CONFIGS_DIR}/functionalities.yaml" ]]; then
         log_error "Functionalities configuration not found"
         exit 1
     fi
 
-    log_info "What AI features do you need? (Enter numbers separated by spaces, e.g., '1 2 3')"
+    log_info "What AI features do you need? (Enter numbers separated by spaces, e.g., '1 2 3')" >&2
 
     local functionalities=()
     local functionality_keys=()
@@ -201,13 +209,13 @@ select_functionalities() {
     while IFS= read -r functionality; do
         local name=$(yq eval ".functionalities.${functionality}.name" "${CONFIGS_DIR}/functionalities.yaml")
         local description=$(yq eval ".functionalities.${functionality}.description" "${CONFIGS_DIR}/functionalities.yaml")
-        echo "  ${counter}. ${name} - ${description}"
+        echo "  ${counter}. ${name} - ${description}" >&2
         functionalities+=("${name}")
         functionality_keys+=("${functionality}")
         ((counter++))
     done < <(yq eval '.functionalities | keys | .[]' "${CONFIGS_DIR}/functionalities.yaml")
 
-    echo -n "Your selection: "
+    echo -n "Your selection: " >&2
     read -r selection
 
     local selected_functionalities=()
@@ -227,8 +235,8 @@ analyze_dependencies() {
     shift
     local functionalities=("$@")
 
-    echo ""
-    echo "Step 3: Dependencies Analysis"
+    echo "" >&2
+    echo "Step 3: Dependencies Analysis" >&2
 
     if [[ ! -f "${CONFIGS_DIR}/dependencies.yaml" ]]; then
         log_error "Dependencies configuration not found"
@@ -261,20 +269,20 @@ analyze_dependencies() {
     local unique_addons=($(printf "%s\n" "${required_addons[@]}" | sort -u))
 
     if [[ ${#unique_addons[@]} -gt 0 ]]; then
-        log_step "Required add-ons for your selection:"
+        log_step "Required add-ons for your selection:" >&2
         for addon in "${unique_addons[@]}"; do
-            echo "  - ${addon} → Will install"
+            echo "  - ${addon} → Will install" >&2
         done
 
-        echo ""
-        echo -n "? Proceed with installation? (Y/n): "
+        echo "" >&2
+        echo -n "? Proceed with installation? (Y/n): " >&2
         read -r proceed
         if [[ "$proceed" =~ ^[Nn] ]]; then
-            log_warning "Installation cancelled"
+            log_warning "Installation cancelled" >&2
             exit 0
         fi
     else
-        log_info "No additional add-ons required"
+        log_info "No additional add-ons required" >&2
     fi
 
     printf '%s\n' "${unique_addons[@]}"
@@ -300,8 +308,8 @@ install_addon() {
 configure_provider() {
     local provider="$1"
 
-    echo ""
-    echo "Step 5: Configuration"
+    echo "" >&2
+    echo "Step 5: Configuration" >&2
 
     if [[ ! -f "${CONFIGS_DIR}/providers.yaml" ]]; then
         log_error "Providers configuration not found"
@@ -315,13 +323,13 @@ configure_provider() {
     if [[ -n "$required_vars" ]]; then
         while IFS= read -r var; do
             [[ -z "$var" ]] && continue
-            echo -n "? ${var}: "
+            echo -n "? ${var}: " >&2
             if [[ "$var" == *"KEY"* ]] || [[ "$var" == *"TOKEN"* ]]; then
                 # Secure input for API keys
-                read -rs value
-                echo ""
+                read -rs value </dev/tty
+                echo "" >&2
             else
-                read -r value
+                read -r value </dev/tty
             fi
             save_config "$var" "$value"
         done <<< "$required_vars"
@@ -334,8 +342,8 @@ configure_provider() {
     if [[ -n "$optional_vars" ]]; then
         while IFS=: read -r var default_value; do
             [[ -z "$var" ]] && continue
-            echo -n "? ${var} (${default_value}): "
-            read -r value
+            echo -n "? ${var} (${default_value}): " >&2
+            read -r value </dev/tty
             save_config "$var" "${value:-$default_value}"
         done <<< "$optional_vars"
     fi

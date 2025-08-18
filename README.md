@@ -12,7 +12,7 @@ This add-on provides an interactive CLI orchestration tool for Drupal AI workflo
 With this add-on, you can:
 
 * **Interactive Setup Wizard**: Choose AI provider → select functionality → automatic dependency resolution and installation
-* **Multiple AI Providers**: Support for OpenAI, Anthropic, Ollama, Azure OpenAI, and Google Gemini
+* **Multiple AI Providers**: Support for OpenAI, Anthropic, Ollama, and Google Gemini
 * **Automated Add-on Management**: Automatically install required add-ons (pgvector, unstructured, etc.)
 * **YAML-driven Configuration**: Extensible configuration system for providers and functionalities
 * **Comprehensive Error Handling**: User-friendly error messages and rollback capabilities
@@ -63,7 +63,6 @@ Step 1: Select AI Provider
   ❯ OpenAI (GPT-4, GPT-3.5, Embeddings)
     Anthropic (Claude 3.5, Claude 3)
     Ollama (Local LLM - llama3, mistral, etc.)
-    Azure OpenAI (Enterprise)
     Google Gemini (gemini-pro, gemini-vision)
 
 Step 2: Select Functionality
@@ -122,7 +121,6 @@ Next steps:
 | **OpenAI** | GPT-4, GPT-3.5, DALL-E | Text generation, embeddings, image generation |
 | **Anthropic** | Claude 3.5, Claude 3 | Text generation |
 | **Ollama** | Llama3, Mistral, etc. | Local text generation, embeddings |
-| **Azure OpenAI** | GPT-4, GPT-3.5 | Enterprise text generation, embeddings |
 | **Google Gemini** | Gemini Pro, Vision | Text generation, image analysis |
 
 ### Available Functionalities

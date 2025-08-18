@@ -2,7 +2,7 @@
 
 ## Project Overview
 - **Repository**: Drupal-AI/ddev-drupal-ai (main branch)
-- **Current State**: Scaffold complete with basic docker-compose.drupal-ai.yaml
+- **Current State**: Basic project structure with CLI implementation
 - **Goal**: Create interactive CLI orchestration tool for Drupal AI workflows
 - **Reference Issue**: https://www.drupal.org/project/ai/issues/3532795#comment-16218979
 - **Inspiration**: Based on ddev-drupal-suite approach https://github.com/lussoluca/ddev-drupal-suite
@@ -11,10 +11,13 @@
 
 ```
 ddev-drupal-ai/
- ├── docker-compose.drupal-ai.yaml (basic busybox scaffold)
  ├── install.yaml (minimal DDEV v1.24.3+ constraint)
  ├── README.md (describes the vision)
- ├── test.bats
+ ├── commands/web/drupal-ai (CLI implementation)
+ ├── configs/ (YAML configurations)
+ ├── scripts/ (helper scripts)
+ ├── templates/ (configuration templates)
+ ├── tests/test.bats
  └── LICENSE
 ```
 
@@ -29,7 +32,7 @@ ddev-drupal-ai/
 ### Primary Commands
 1. `ddev drupal-ai setup`
    - Interactive wizard for complete AI stack setup
-   - Provider selection (OpenAI, Anthropic, Ollama, Azure OpenAI, etc.)
+   - Provider selection (OpenAI, Anthropic, Ollama, Google Gemini, etc.)
    - Functionality selection (search, embeddings, Q&A, content generation)
    - Automatic dependency resolution and installation
 
@@ -50,7 +53,6 @@ Step 1: Select AI Provider
   ❯ OpenAI (GPT-4, GPT-3.5, Embeddings)
     Anthropic (Claude 3.5, Claude 3)
     Ollama (Local LLM - llama3, mistral, etc.)
-    Azure OpenAI (Enterprise)
     Google Gemini (gemini-pro, gemini-vision)
 
 Step 2: Select Functionality
@@ -179,7 +181,6 @@ workflows:
 
 ### Integration Points
 
-- Extend Current Files: Modify existing docker-compose.drupal-ai.yaml to add conditional services
 - Environment Management: Use .ddev/.env.drupal-ai for configuration persistence
 - DDEV Integration: Leverage ddev add-on get for add-on installation
 - Validation: Check DDEV version, Docker availability, network connectivity

@@ -1,3 +1,4 @@
+#ddev-generated
 # Ollama Local LLM Workflow
 # This workflow sets up local LLM execution with Ollama
 
@@ -14,7 +15,7 @@ environment_variables:
   # Ollama Configuration
   OLLAMA_HOST: "${OLLAMA_HOST:-http://ollama:11434}"
   OLLAMA_MODEL: "${OLLAMA_MODEL:-llama3}"
-  
+
   # Vector Database Configuration
   POSTGRES_DB: "${POSTGRES_DB:-drupal_ai}"
   POSTGRES_USER: "${POSTGRES_USER:-drupal_ai}"
@@ -36,7 +37,7 @@ docker_compose_additions:
     # Provided by stinis87/ddev-ollama
     expected_image: "ollama/ollama:latest"
     expected_ports: ["11434:11434"]
-      
+
   pgvector:
     # Provided by robertoperuzzo/ddev-pgvector
     expected_image: "pgvector/pgvector:pg16"

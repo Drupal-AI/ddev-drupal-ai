@@ -1,3 +1,5 @@
+## #ddev-generated
+
 functionalities:
   vector-search:
     name: "Vector Search & Embeddings"

@@ -1,3 +1,5 @@
+## #ddev-generated
+
 providers:
   openai:
     name: "OpenAI"
@@ -30,18 +32,6 @@ providers:
       OLLAMA_HOST: "http://ollama:11434"
     capabilities: ["text-generation", "embeddings"]
     dependencies: ["ollama-service"]
-
-  azure_openai:
-    name: "Azure OpenAI"
-    description: "Enterprise OpenAI through Azure"
-    required_vars:
-      - AZURE_OPENAI_API_KEY
-      - AZURE_OPENAI_ENDPOINT
-    optional_vars:
-      AZURE_OPENAI_MODEL: "gpt-4"
-      AZURE_OPENAI_API_VERSION: "2024-02-01"
-    capabilities: ["text-generation", "embeddings"]
-    dependencies: []
 
   google_gemini:
     name: "Google Gemini"

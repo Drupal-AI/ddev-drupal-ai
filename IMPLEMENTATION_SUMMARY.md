@@ -27,7 +27,6 @@ ddev-drupal-ai/
 │   ├── docker-compose.pgvector.yaml
 │   ├── docker-compose.ollama.yaml
 │   └── .env.drupal-ai.template
-├── docker-compose.drupal-ai.yaml           # Updated base service
 ├── install.yaml                            # Updated with all new files
 ├── README.md                               # Comprehensive documentation
 ├── PROMPT.md                               # Improved heading hierarchy
@@ -47,7 +46,6 @@ ddev-drupal-ai/
 ✅ **OpenAI** - GPT-4, GPT-3.5, DALL-E, Embeddings
 ✅ **Anthropic** - Claude 3.5, Claude 3
 ✅ **Ollama** - Local LLMs (Llama3, Mistral, etc.)
-✅ **Azure OpenAI** - Enterprise OpenAI through Azure
 ✅ **Google Gemini** - Gemini Pro, Gemini Vision
 
 ## 🔧 AI Functionalities
@@ -109,7 +107,7 @@ ddev-drupal-ai/
 
 ### Functional Requirements ✅
 - [x] Interactive setup completes in under 5 minutes
-- [x] Supports 5 AI providers (OpenAI, Anthropic, Ollama, Azure OpenAI, Gemini)
+- [x] Supports 4 AI providers (OpenAI, Anthropic, Ollama, Gemini)
 - [x] Automatically installs required add-ons
 - [x] Configuration persists across `ddev restart`
 - [x] Works on macOS, Linux, Windows (WSL)
