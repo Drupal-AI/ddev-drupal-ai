@@ -9,10 +9,9 @@ set -euo pipefail
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DRUPAL_AI_DIR="${DDEV_APPROOT}/.ddev/drupal-ai"
-CONFIGS_DIR="${DRUPAL_AI_DIR}/configs"
-SCRIPTS_DIR="${DRUPAL_AI_DIR}/scripts"
-TEMPLATES_DIR="${DRUPAL_AI_DIR}/templates"
+CONFIGS_DIR="${DDEV_APPROOT}/.ddev/configs"
+SCRIPTS_DIR="${DDEV_APPROOT}/.ddev/scripts"
+TEMPLATES_DIR="${DDEV_APPROOT}/.ddev/templates"
 CONFIG_FILE="${DDEV_APPROOT}/.ddev/.env.drupal-ai"
 
 # Colors for output
@@ -264,8 +263,7 @@ analyze_dependencies() {
     if [[ ${#unique_addons[@]} -gt 0 ]]; then
         log_step "Required add-ons for your selection:"
         for addon in "${unique_addons[@]}"; do
-            local description=$(yq eval ".addon_sources.${addon}.description" "${CONFIGS_DIR}/dependencies.yaml" 2>/dev/null || echo "Unknown")
-            echo "  - ${addon} (${description}) → Will install"
+            echo "  - ${addon} → Will install"
         done
 
         echo ""
@@ -284,27 +282,16 @@ analyze_dependencies() {
 
 # Install add-on
 install_addon() {
-    local addon="$1"
+    local addon_identifier="$1"
 
-    if [[ ! -f "${CONFIGS_DIR}/dependencies.yaml" ]]; then
-        log_error "Dependencies configuration not found"
-        return 1
-    fi
+    log_step "Installing add-on: ${addon_identifier}..."
 
-    local source=$(yq eval ".addon_sources.${addon}.source" "${CONFIGS_DIR}/dependencies.yaml")
-    if [[ "$source" == "null" ]]; then
-        log_error "Unknown add-on: $addon"
-        return 1
-    fi
-
-    log_step "Installing ${addon} add-on..."
-
-    # Use ddev get to install the add-on
-    if ddev get "$source"; then
-        log_success "Successfully installed ${addon}"
+    # Use ddev add-on get to install the add-on directly
+    if ddev add-on get "$addon_identifier"; then
+        log_success "Successfully installed ${addon_identifier}"
         return 0
     else
-        log_error "Failed to install ${addon}"
+        log_error "Failed to install ${addon_identifier}"
         return 1
     fi
 }
@@ -395,28 +382,6 @@ setup_workflow() {
     echo "- Configure at /admin/config/ai"
 }
 
-# Add specific add-on
-add_addon() {
-    local addon="$1"
-
-    if [[ -z "$addon" ]]; then
-        log_error "Please specify an add-on to install"
-        echo "Usage: ddev drupal-ai add <addon>"
-        echo "Available add-ons: pgvector, unstructured, ollama"
-        exit 1
-    fi
-
-    log_info "Installing add-on: $addon"
-
-    if install_addon "$addon"; then
-        log_success "Add-on $addon installed successfully"
-        log_info "Run 'ddev restart' to apply changes"
-    else
-        log_error "Failed to install add-on: $addon"
-        exit 1
-    fi
-}
-
 # List available providers, functionalities and installed add-ons
 list_command() {
     echo -e "${PURPLE}🤖 Drupal AI Status${NC}"
@@ -441,13 +406,11 @@ show_help() {
     echo ""
     echo "Commands:"
     echo "  setup          Interactive wizard for complete AI stack setup"
-    echo "  add <addon>    Manually install specific AI-related add-ons"
     echo "  list           Display available providers and installed add-ons"
     echo "  help           Show this help message"
     echo ""
     echo "Examples:"
     echo "  ddev drupal-ai setup"
-    echo "  ddev drupal-ai add pgvector"
     echo "  ddev drupal-ai list"
 }
 
@@ -461,9 +424,6 @@ main() {
     case "$command" in
         "setup")
             setup_workflow
-            ;;
-        "add")
-            add_addon "${2:-}"
             ;;
         "list")
             list_command

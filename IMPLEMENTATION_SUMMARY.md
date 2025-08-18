@@ -8,27 +8,25 @@ I have successfully implemented the complete DDEV Drupal AI Add-on as specified 
 
 ```
 ddev-drupal-ai/
-├── .ddev/
-│   ├── commands/
-│   │   └── web/
-│   │       └── drupal-ai                    # Main CLI script (executable)
-│   └── drupal-ai/
-│       ├── configs/
-│       │   ├── providers.yaml               # AI provider definitions
-│       │   ├── functionalities.yaml        # Available AI features
-│       │   ├── dependencies.yaml           # Add-on dependency mapping
-│       │   └── workflows/
-│       │       ├── openai-embeddings.yaml  # OpenAI workflow
-│       │       ├── ollama-local.yaml       # Ollama workflow
-│       │       └── anthropic-content.yaml  # Anthropic workflow
-│       ├── scripts/
-│       │   ├── install-addon.sh            # Add-on installation logic (executable)
-│       │   ├── configure-provider.sh       # Provider configuration (executable)
-│       │   └── validate-config.sh          # Configuration validation (executable)
-│       └── templates/
-│           ├── docker-compose.pgvector.yaml
-│           ├── docker-compose.ollama.yaml
-│           └── .env.drupal-ai.template
+├── commands/
+│   └── web/
+│       └── drupal-ai                       # Main CLI script (executable)
+├── configs/
+│   ├── providers.yaml                      # AI provider definitions
+│   ├── functionalities.yaml                # Available AI features
+│   ├── dependencies.yaml                   # Add-on dependency mapping
+│   └── workflows/
+│       ├── openai-embeddings.yaml          # OpenAI workflow
+│       ├── ollama-local.yaml               # Ollama workflow
+│       └── anthropic-content.yaml          # Anthropic workflow
+├── scripts/
+│   ├── install-addon.sh                    # Add-on installation logic (executable)
+│   ├── configure-provider.sh               # Provider configuration (executable)
+│   └── validate-config.sh                  # Configuration validation (executable)
+├── templates/
+│   ├── docker-compose.pgvector.yaml
+│   ├── docker-compose.ollama.yaml
+│   └── .env.drupal-ai.template
 ├── docker-compose.drupal-ai.yaml           # Updated base service
 ├── install.yaml                            # Updated with all new files
 ├── README.md                               # Comprehensive documentation
@@ -41,7 +39,6 @@ ddev-drupal-ai/
 
 ### Primary Commands
 ✅ `ddev drupal-ai setup` - Interactive wizard for complete AI stack setup
-✅ `ddev drupal-ai add <addon>` - Install specific AI-related add-ons  
 ✅ `ddev drupal-ai list` - Display available providers and installed add-ons
 ✅ `ddev drupal-ai help` - Show help information
 
@@ -145,22 +142,16 @@ ddev restart
 ddev drupal-ai setup
 ```
 
-### Manual Add-on Installation
-```bash
-ddev drupal-ai add pgvector
-ddev drupal-ai add unstructured
-```
-
 ### Health Check
 ```bash
-ddev exec .ddev/drupal-ai/scripts/validate-config.sh health
+ddev exec .ddev/scripts/validate-config.sh health
 ```
 
 ## 🧬 Architecture Highlights
 
 ✅ **Glue Add-on Pattern** - Orchestrates other add-ons
 ✅ **Progressive Disclosure** - Shows only relevant options
-✅ **Smart Defaults** - Pre-selects common configurations  
+✅ **Smart Defaults** - Pre-selects common configurations
 ✅ **Dependency Resolution** - Automatically identifies requirements
 ✅ **Extensible Design** - Easy to add new providers/functionalities
 

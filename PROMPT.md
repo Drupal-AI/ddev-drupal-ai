@@ -33,11 +33,7 @@ ddev-drupal-ai/
    - Functionality selection (search, embeddings, Q&A, content generation)
    - Automatic dependency resolution and installation
 
-2. `ddev drupal-ai add <addon>`
-   - Manually install specific AI-related add-ons
-   - Support: unstructured, pgvector, custom recipes
-
-3. `ddev drupal-ai list`
+2. `ddev drupal-ai list`
    - Display available providers and their capabilities
    - Show installed vs available add-ons
    - List configured recipes
@@ -100,23 +96,22 @@ Next steps:
  ├── commands/
  │   └── web/
  │       └── drupal-ai # Main CLI script
- ├── drupal-ai/
- │   ├── recipes/
- │   │   ├── providers.yaml # AI provider definitions
- │   │   ├── functionalities.yaml # Available AI features
- │   │   ├── dependencies.yaml # Add-on dependency mapping
- │   │   └── workflows/
- │   │       ├── openai-embeddings.yaml
- │   │       ├── ollama-local.yaml
- │   │       └── anthropic-content.yaml
- │   ├── scripts/
- │   │   ├── install-addon.sh # Add-on installation logic
- │   │   ├── configure-provider.sh # Provider-specific setup
- │   │   └── validate-config.sh # Configuration validation
- │   └── templates/
- │       ├── docker-compose.pgvector.yaml
- │       ├── docker-compose.ollama.yaml
- │       └── .env.drupal-ai.template
+ ├── configs/
+ │   ├── providers.yaml # AI provider definitions
+ │   ├── functionalities.yaml # Available AI features
+ │   ├── dependencies.yaml # Add-on dependency mapping
+ │   └── workflows/
+ │       ├── openai-embeddings.yaml
+ │       ├── ollama-local.yaml
+ │       └── anthropic-content.yaml
+ ├── scripts/
+ │   ├── install-addon.sh # Add-on installation logic
+ │   ├── configure-provider.sh # Provider-specific setup
+ │   └── validate-config.sh # Configuration validation
+ └── templates/
+     ├── docker-compose.pgvector.yaml
+     ├── docker-compose.ollama.yaml
+     └── .env.drupal-ai.template
 ```
 
 ## Core Script Requirements (.ddev/commands/web/drupal-ai)
@@ -173,21 +168,12 @@ functionalities:
 
 #### dependencies.yaml
 ```yaml
-addon_sources:
-  pgvector:
-    source: "drud/ddev-pgvector"  # To be created
-    description: "PostgreSQL with pgvector extension"
-
-  unstructured:
-    source: "your-org/ddev-unstructured"  # Existing
-    description: "Document processing and parsing"
-
 workflows:
   openai-embeddings:
     name: "OpenAI + Vector Search"
     provider: "openai"
     functionalities: ["vector-search", "content-generation"]
-    required_addons: ["pgvector"]
+    required_addons: ["robertoperuzzo/ddev-pgvector"]
     docker_services: ["postgres-vector", "redis"]
 ```
 
@@ -195,7 +181,7 @@ workflows:
 
 - Extend Current Files: Modify existing docker-compose.drupal-ai.yaml to add conditional services
 - Environment Management: Use .ddev/.env.drupal-ai for configuration persistence
-- DDEV Integration: Leverage ddev get for add-on installation
+- DDEV Integration: Leverage ddev add-on get for add-on installation
 - Validation: Check DDEV version, Docker availability, network connectivity
 
 

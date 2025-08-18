@@ -6,7 +6,10 @@
 set -euo pipefail
 
 # Configuration
-CONFIGS_DIR="${DDEV_APPROOT}/.ddev/drupal-ai/configs"
+set -euo pipefail
+
+# Directory paths
+CONFIGS_DIR="${DDEV_APPROOT}/.ddev/configs"
 
 # Colors for output
 RED='\033[0;31m'
@@ -41,31 +44,16 @@ install_addon() {
         return 1
     fi
     
-    if [[ ! -f "${CONFIGS_DIR}/dependencies.yaml" ]]; then
-        log_error "Dependencies configuration not found"
-        return 1
-    fi
-    
-    # Get add-on source
-    local source
-    source=$(yq eval ".addon_sources.${addon}.source" "${CONFIGS_DIR}/dependencies.yaml" 2>/dev/null || echo "null")
-    
-    if [[ "$source" == "null" || -z "$source" ]]; then
-        log_error "Unknown add-on: $addon"
-        return 1
-    fi
-    
     log_info "Installing add-on: $addon"
-    log_info "Source: $source"
     
-    # Check if add-on is already installed
+    # Check if add-on is already installed (check by identifier pattern)
     if check_addon_installed "$addon"; then
         log_warning "Add-on $addon is already installed"
         return 0
     fi
     
-    # Install using ddev get
-    if ddev get "$source"; then
+    # Install using ddev add-on get (addon parameter is now the full identifier)
+    if ddev add-on get "$addon"; then
         log_success "Successfully installed $addon"
         
         # Run post-install configuration if needed

@@ -211,11 +211,6 @@ teardown() {
   run ddev drupal-ai invalid-command
   assert_failure
   assert_output --partial "Unknown command: invalid-command"
-  
-  # Test add command without parameter
-  run ddev drupal-ai add
-  assert_failure
-  assert_output --partial "Please specify an add-on to install"
 }
 
 @test "provider configuration structure" {
@@ -259,18 +254,18 @@ teardown() {
   run ddev add-on get "${DIR}"
   assert_success
   
-  # Test that addon sources are properly configured for existing add-ons
-  run yq eval '.addon_sources.pgvector.source' .ddev/drupal-ai/configs/dependencies.yaml
+  # Test workflow configuration uses direct identifiers
+  run yq eval '.workflows."openai-embeddings".required_addons[0]' .ddev/configs/dependencies.yaml
   assert_success
   assert_output "robertoperuzzo/ddev-pgvector"
   
-  # Test ollama source
-  run yq eval '.addon_sources."ollama-service".source' .ddev/drupal-ai/configs/dependencies.yaml
+  # Test ollama workflow uses direct identifiers
+  run yq eval '.workflows."ollama-local".required_addons[0]' .ddev/configs/dependencies.yaml
   assert_success
   assert_output "stinis87/ddev-ollama"
   
   # Test workflow configuration
-  run yq eval '.workflows."openai-embeddings".provider' .ddev/drupal-ai/configs/dependencies.yaml
+  run yq eval '.workflows."openai-embeddings".provider' .ddev/configs/dependencies.yaml
   assert_success
   assert_output "openai"
 }

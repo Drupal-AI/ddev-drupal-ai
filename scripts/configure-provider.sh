@@ -6,7 +6,10 @@
 set -euo pipefail
 
 # Configuration
-CONFIGS_DIR="${DDEV_APPROOT}/.ddev/drupal-ai/configs"
+set -euo pipefail
+
+# Directory paths
+CONFIGS_DIR="${DDEV_APPROOT}/.ddev/configs"
 CONFIG_FILE="${DDEV_APPROOT}/.ddev/.env.drupal-ai"
 
 # Colors for output

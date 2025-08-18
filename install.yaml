@@ -1,17 +1,16 @@
 name: drupal-ai
 
 project_files:
-  - docker-compose.drupal-ai.yaml
-  - .ddev/commands/web/drupal-ai
-  - .ddev/drupal-ai/configs/providers.yaml
-  - .ddev/drupal-ai/configs/functionalities.yaml
-  - .ddev/drupal-ai/configs/dependencies.yaml
-  - .ddev/drupal-ai/configs/workflows/openai-embeddings.yaml
-  - .ddev/drupal-ai/configs/workflows/ollama-local.yaml
-  - .ddev/drupal-ai/configs/workflows/anthropic-content.yaml
-  - .ddev/drupal-ai/scripts/install-addon.sh
-  - .ddev/drupal-ai/scripts/configure-provider.sh
-  - .ddev/drupal-ai/scripts/validate-config.sh
-  - .ddev/drupal-ai/templates/.env.drupal-ai.template
+  - commands/web/drupal-ai
+  - configs/providers.yaml
+  - configs/functionalities.yaml
+  - configs/dependencies.yaml
+  - configs/workflows/openai-embeddings.yaml
+  - configs/workflows/ollama-local.yaml
+  - configs/workflows/anthropic-content.yaml
+  - scripts/install-addon.sh
+  - scripts/configure-provider.sh
+  - scripts/validate-config.sh
+  - templates/.env.drupal-ai.template
 
 ddev_version_constraint: '>= v1.24.3'

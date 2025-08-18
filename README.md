@@ -103,7 +103,6 @@ Next steps:
 | Command | Description |
 |---------|-------------|
 | `ddev drupal-ai setup` | Interactive wizard for complete AI stack setup |
-| `ddev drupal-ai add <addon>` | Manually install specific AI-related add-ons |
 | `ddev drupal-ai list` | Display available providers and installed add-ons |
 | `ddev drupal-ai help` | Show help information |
 
@@ -176,24 +175,11 @@ ddev exec .ddev/drupal-ai/scripts/configure-provider.sh list
 
 ## Advanced Usage
 
-### Installing Specific Add-ons
-
-```bash
-# Install PostgreSQL with pgvector
-ddev drupal-ai add pgvector
-
-# Install Unstructured document processing
-ddev drupal-ai add unstructured
-
-# Install Ollama for local LLMs
-ddev drupal-ai add ollama-service
-```
-
 ### Validation and Health Checks
 
 ```bash
 # Run comprehensive health check
-ddev exec .ddev/drupal-ai/scripts/validate-config.sh health
+ddev exec .ddev/scripts/validate-config.sh health
 
 # Validate specific components
 ddev exec .ddev/drupal-ai/scripts/validate-config.sh provider
