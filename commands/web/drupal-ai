@@ -13,6 +13,7 @@ CONFIGS_DIR="${DDEV_APPROOT}/.ddev/configs"
 SCRIPTS_DIR="${DDEV_APPROOT}/.ddev/scripts"
 TEMPLATES_DIR="${DDEV_APPROOT}/.ddev/templates"
 CONFIG_FILE="${DDEV_APPROOT}/.ddev/.env.drupal-ai"
+GITIGNORE_FILE="${DDEV_APPROOT}/.ddev/.gitignore"
 
 # Colors for output
 RED='\033[0;31m'
@@ -65,20 +66,52 @@ load_config() {
     fi
 }
 
+# Ensure config file is protected from git commits
+protect_config_from_git() {
+    # Add .env.drupal-ai to .ddev/.gitignore if it doesn't exist
+    if [[ ! -f "$GITIGNORE_FILE" ]]; then
+        touch "$GITIGNORE_FILE"
+    fi
+
+    if ! grep -q "\.env\.drupal-ai" "$GITIGNORE_FILE" 2>/dev/null; then
+        echo ".env.drupal-ai" >> "$GITIGNORE_FILE"
+        log_info "Added .env.drupal-ai to .ddev/.gitignore for security"
+    fi
+}
+
 # Save configuration
 save_config() {
     local key="$1"
     local value="$2"
 
-    if [[ -f "$CONFIG_FILE" ]]; then
-        # Update existing key or add new one
-        if grep -q "^${key}=" "$CONFIG_FILE"; then
-            sed -i.bak "s/^${key}=.*/${key}=${value}/" "$CONFIG_FILE" && rm -f "${CONFIG_FILE}.bak"
+    # Create or ensure config file exists
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        echo "${key}=${value}" > "$CONFIG_FILE"
+        return
+    fi
+
+    # Use a temporary file to avoid sed delimiter issues
+    local temp_file="${CONFIG_FILE}.tmp"
+
+    # Check if the file is readable and contains valid key=value pairs
+    if ! grep -q "=" "$CONFIG_FILE" 2>/dev/null; then
+        # File is corrupted or empty, recreate it
+        echo "${key}=${value}" > "$CONFIG_FILE"
+        return
+    fi
+
+    if grep -q "^${key}=" "$CONFIG_FILE" 2>/dev/null; then
+        # Update existing key by rewriting the file
+        if grep -v "^${key}=" "$CONFIG_FILE" > "$temp_file" 2>/dev/null; then
+            echo "${key}=${value}" >> "$temp_file"
+            mv "$temp_file" "$CONFIG_FILE"
         else
-            echo "${key}=${value}" >> "$CONFIG_FILE"
+            # If grep fails, recreate the file
+            echo "${key}=${value}" > "$CONFIG_FILE"
         fi
     else
-        echo "${key}=${value}" > "$CONFIG_FILE"
+        # Add new key
+        echo "${key}=${value}" >> "$CONFIG_FILE"
     fi
 }
 
@@ -310,6 +343,12 @@ configure_provider() {
 
     echo "" >&2
     echo "Step 5: Configuration" >&2
+    echo "" >&2
+    log_warning "🔒 Security Notice:" >&2
+    echo "  • Configuration will be stored in .ddev/.env.drupal-ai" >&2
+    echo "  • This file is automatically added to .gitignore" >&2
+    echo "  • Never commit API keys to version control" >&2
+    echo "" >&2
 
     if [[ ! -f "${CONFIGS_DIR}/providers.yaml" ]]; then
         log_error "Providers configuration not found"
@@ -353,6 +392,16 @@ configure_provider() {
 setup_workflow() {
     log_info "Starting Drupal AI setup..."
 
+    # Create fresh configuration file
+    log_info "Creating fresh configuration..."
+    if [[ -f "$CONFIG_FILE" ]]; then
+        rm -f "$CONFIG_FILE"
+    fi
+    touch "$CONFIG_FILE"
+
+    # Protect config file from git commits
+    protect_config_from_git
+
     # Step 1: Select provider
     local provider
     provider=$(select_provider)
@@ -388,6 +437,11 @@ setup_workflow() {
     echo "- Run \`ddev restart\` to apply changes"
     echo "- Install Drupal AI modules: \`ddev composer require drupal/ai\`"
     echo "- Configure at /admin/config/ai"
+    echo ""
+    log_info "💡 Security Tip:"
+    echo "For production, consider using DDEV environment variables:"
+    echo "  \`ddev config global --web-environment-add OPENAI_API_KEY=your_key_here\`"
+    echo "  Then remove the key from .ddev/.env.drupal-ai file"
 }
 
 # List available providers, functionalities and installed add-ons

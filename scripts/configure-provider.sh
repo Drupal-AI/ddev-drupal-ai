@@ -45,18 +45,16 @@ save_config() {
     # Create config file if it doesn't exist
     touch "$CONFIG_FILE"
 
-    # Update existing key or add new one
+    # Use a safe approach to avoid sed delimiter issues
+    local temp_file="${CONFIG_FILE}.tmp"
+    
     if grep -q "^${key}=" "$CONFIG_FILE"; then
-        # Update existing
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS
-            sed -i '' "s/^${key}=.*/${key}=${value}/" "$CONFIG_FILE"
-        else
-            # Linux
-            sed -i "s/^${key}=.*/${key}=${value}/" "$CONFIG_FILE"
-        fi
+        # Update existing key by rewriting the file
+        grep -v "^${key}=" "$CONFIG_FILE" > "$temp_file"
+        echo "${key}=${value}" >> "$temp_file"
+        mv "$temp_file" "$CONFIG_FILE"
     else
-        # Add new
+        # Add new key
         echo "${key}=${value}" >> "$CONFIG_FILE"
     fi
 }
