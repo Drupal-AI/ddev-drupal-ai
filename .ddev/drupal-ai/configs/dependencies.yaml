@@ -1,0 +1,45 @@
+addon_sources:
+  pgvector:
+    source: "robertoperuzzo/ddev-pgvector"
+    description: "PostgreSQL with pgvector extension for vector storage"
+    
+  unstructured:
+    source: "drud/ddev-unstructured"
+    description: "Document processing and parsing service"
+    
+  ollama-service:
+    source: "stinis87/ddev-ollama"
+    description: "Local LLM server for running models like Llama, Mistral"
+    
+  redis:
+    source: "drud/ddev-redis"
+    description: "Redis cache for improved AI performance"
+
+workflows:
+  openai-embeddings:
+    name: "OpenAI + Vector Search"
+    provider: "openai"
+    functionalities: ["vector-search", "content-generation"]
+    required_addons: ["pgvector"]
+    docker_services: ["pgvector", "redis"]
+    
+  ollama-local:
+    name: "Ollama Local Setup"
+    provider: "ollama"
+    functionalities: ["content-generation", "vector-search"]
+    required_addons: ["ollama-service", "pgvector"]
+    docker_services: ["ollama", "pgvector"]
+    
+  anthropic-content:
+    name: "Anthropic Content Generation"
+    provider: "anthropic"
+    functionalities: ["content-generation", "qa-system"]
+    required_addons: ["pgvector"]
+    docker_services: ["pgvector"]
+    
+  complete-ai-stack:
+    name: "Complete AI Stack"
+    provider: "openai"
+    functionalities: ["vector-search", "content-generation", "document-processing", "qa-system"]
+    required_addons: ["pgvector", "unstructured", "redis"]
+    docker_services: ["pgvector", "unstructured", "redis"]

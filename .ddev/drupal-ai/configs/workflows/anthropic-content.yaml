@@ -1,0 +1,41 @@
+# Anthropic Content Generation Workflow
+# This workflow sets up Anthropic Claude for content generation
+
+name: "Anthropic Content Generation"
+description: "Claude-powered content creation and Q&A system"
+
+provider: anthropic
+
+required_services:
+  - pgvector
+
+environment_variables:
+  # Anthropic Configuration
+  ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+  ANTHROPIC_MODEL: "${ANTHROPIC_MODEL:-claude-3-5-sonnet-20241022}"
+  ANTHROPIC_BASE_URL: "${ANTHROPIC_BASE_URL:-https://api.anthropic.com}"
+
+  # Vector Database Configuration
+  POSTGRES_DB: "${POSTGRES_DB:-drupal_ai}"
+  POSTGRES_USER: "${POSTGRES_USER:-drupal_ai}"
+  POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-drupal_ai}"
+
+drupal_modules:
+  required:
+    - ai
+    - ai_anthropic
+    - ai_content
+    - ai_qa
+  recommended:
+    - ai_logging
+    - ai_admin
+    - search_api
+
+docker_compose_additions:
+  # Note: pgvector service is provided by robertoperuzzo/ddev-pgvector add-on
+  pgvector:
+    expected_image: "pgvector/pgvector:pg16"
+    expected_ports: ["5432:5432"]
+
+volumes:
+  # Note: Volumes are managed by the respective add-ons

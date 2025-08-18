@@ -39,17 +39,26 @@ setup() {
 }
 
 health_checks() {
-  # Do something useful here that verifies the add-on
-
-  # You can check for specific information in headers:
-  # run curl -sfI https://${PROJNAME}.ddev.site
-  # assert_output --partial "HTTP/2 200"
-  # assert_output --partial "test_header"
-
-  # Or check if some command gives expected output:
-  DDEV_DEBUG=true run ddev launch
+  # Check if drupal-ai command is available
+  run ddev drupal-ai help
   assert_success
-  assert_output --partial "FULLURL https://${PROJNAME}.ddev.site"
+  assert_output --partial "Drupal AI Add-on"
+
+  # Check if configuration files exist
+  assert_file_exists ".ddev/drupal-ai/configs/providers.yaml"
+  assert_file_exists ".ddev/drupal-ai/configs/functionalities.yaml"
+  assert_file_exists ".ddev/drupal-ai/configs/dependencies.yaml"
+  
+  # Check if scripts are executable
+  assert_file_exists ".ddev/drupal-ai/scripts/install-addon.sh"
+  assert_file_executable ".ddev/drupal-ai/scripts/install-addon.sh"
+  
+  # Test basic YAML parsing
+  run yq eval '.providers | keys' .ddev/drupal-ai/configs/providers.yaml
+  assert_success
+  assert_output --partial "openai"
+  assert_output --partial "anthropic"
+  assert_output --partial "ollama"
 }
 
 teardown() {
@@ -83,4 +92,216 @@ teardown() {
   run ddev restart -y
   assert_success
   health_checks
+}
+
+@test "drupal-ai help command" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  run ddev restart -y
+  assert_success
+  
+  run ddev drupal-ai help
+  assert_success
+  assert_output --partial "Interactive CLI orchestration tool"
+  assert_output --partial "setup"
+  assert_output --partial "add"
+  assert_output --partial "list"
+}
+
+@test "drupal-ai list command" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  run ddev restart -y
+  assert_success
+  
+  run ddev drupal-ai list
+  assert_success
+  assert_output --partial "Available AI Providers"
+  assert_output --partial "Available AI Functionalities"
+  assert_output --partial "OpenAI"
+  assert_output --partial "Anthropic"
+  assert_output --partial "Vector Search"
+}
+
+@test "configuration files validation" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  run ddev restart -y
+  assert_success
+  
+  # Test YAML syntax validation
+  run yq eval '.' .ddev/drupal-ai/configs/providers.yaml
+  assert_success
+  
+  run yq eval '.' .ddev/drupal-ai/configs/functionalities.yaml
+  assert_success
+  
+  run yq eval '.' .ddev/drupal-ai/configs/dependencies.yaml
+  assert_success
+  
+  # Test specific provider configuration
+  run yq eval '.providers.openai.name' .ddev/drupal-ai/configs/providers.yaml
+  assert_success
+  assert_output "OpenAI"
+  
+  # Test functionality configuration
+  run yq eval '.functionalities."vector-search".name' .ddev/drupal-ai/configs/functionalities.yaml
+  assert_success
+  assert_output "Vector Search & Embeddings"
+}
+
+@test "script functionality" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  run ddev restart -y
+  assert_success
+  
+  # Test validation script
+  run ddev exec ".ddev/drupal-ai/scripts/validate-config.sh ddev"
+  assert_success
+  
+  # Test configure provider script (dry run)
+  run ddev exec ".ddev/drupal-ai/scripts/configure-provider.sh list"
+  assert_success
+}
+
+@test "docker-compose templates exist" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  
+  assert_file_exists ".ddev/drupal-ai/templates/.env.drupal-ai.template"
+  
+  # Test environment template file syntax - it should be a valid environment file
+  run grep -q "DRUPAL_AI_PROVIDER=" .ddev/drupal-ai/templates/.env.drupal-ai.template
+  assert_success
+}
+
+@test "workflow templates validation" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  
+  assert_file_exists ".ddev/drupal-ai/configs/workflows/openai-embeddings.yaml"
+  assert_file_exists ".ddev/drupal-ai/configs/workflows/ollama-local.yaml"
+  assert_file_exists ".ddev/drupal-ai/configs/workflows/anthropic-content.yaml"
+  
+  # Test workflow YAML syntax
+  run yq eval '.' .ddev/drupal-ai/configs/workflows/openai-embeddings.yaml
+  assert_success
+  
+  # Test workflow structure
+  run yq eval '.name' .ddev/drupal-ai/configs/workflows/openai-embeddings.yaml
+  assert_success
+  assert_output "OpenAI with Vector Search"
+}
+
+@test "error handling for invalid commands" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  run ddev restart -y
+  assert_success
+  
+  # Test invalid command
+  run ddev drupal-ai invalid-command
+  assert_failure
+  assert_output --partial "Unknown command: invalid-command"
+  
+  # Test add command without parameter
+  run ddev drupal-ai add
+  assert_failure
+  assert_output --partial "Please specify an add-on to install"
+}
+
+@test "provider configuration structure" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  
+  # Test that all required providers have proper structure
+  local providers=("openai" "anthropic" "ollama" "azure_openai" "google_gemini")
+  
+  for provider in "${providers[@]}"; do
+    run yq eval ".providers.${provider}.name" .ddev/drupal-ai/configs/providers.yaml
+    assert_success
+    
+    run yq eval ".providers.${provider}.description" .ddev/drupal-ai/configs/providers.yaml
+    assert_success
+    
+    run yq eval ".providers.${provider}.capabilities" .ddev/drupal-ai/configs/providers.yaml
+    assert_success
+  done
+}
+
+@test "functionality requirements validation" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  
+  # Test that vector-search requires pgvector
+  run yq eval '.functionalities."vector-search".required_addons[]' .ddev/drupal-ai/configs/functionalities.yaml
+  assert_success
+  assert_output --partial "pgvector"
+  
+  # Test that qa-system requires embeddings capability
+  run yq eval '.functionalities."qa-system".required_capabilities[]' .ddev/drupal-ai/configs/functionalities.yaml
+  assert_success
+  assert_output --partial "embeddings"
+}
+
+@test "dependency mapping validation" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  
+  # Test that addon sources are properly configured for existing add-ons
+  run yq eval '.addon_sources.pgvector.source' .ddev/drupal-ai/configs/dependencies.yaml
+  assert_success
+  assert_output "robertoperuzzo/ddev-pgvector"
+  
+  # Test ollama source
+  run yq eval '.addon_sources."ollama-service".source' .ddev/drupal-ai/configs/dependencies.yaml
+  assert_success
+  assert_output "stinis87/ddev-ollama"
+  
+  # Test workflow configuration
+  run yq eval '.workflows."openai-embeddings".provider' .ddev/drupal-ai/configs/dependencies.yaml
+  assert_success
+  assert_output "openai"
+}
+
+@test "file permissions and executability" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  
+  # Check that main command is executable
+  assert_file_executable ".ddev/commands/web/drupal-ai"
+  
+  # Check that all scripts are executable
+  assert_file_executable ".ddev/drupal-ai/scripts/install-addon.sh"
+  assert_file_executable ".ddev/drupal-ai/scripts/configure-provider.sh"
+  assert_file_executable ".ddev/drupal-ai/scripts/validate-config.sh"
+}
+
+@test "integration with ddev structure" {
+  set -eu -o pipefail
+  run ddev add-on get "${DIR}"
+  assert_success
+  run ddev restart -y
+  assert_success
+  
+  # Test that the add-on integrates properly with ddev
+  run ddev describe
+  assert_success
+  
+  # Check that services can be listed
+  run ddev list
+  assert_success
+  assert_output --partial "${PROJNAME}"
 }
