@@ -157,32 +157,24 @@ POSTGRES_PASSWORD=drupal_ai
 ```
 
 ### Manual Configuration
-
-You can also configure providers manually:
+All configuration is now handled through the main command interface:
 
 ```bash
-# Configure a specific provider
-ddev exec .ddev/drupal-ai/scripts/configure-provider.sh configure openai
+# Configure providers and functionalities
+ddev drupal-ai setup
 
-# Test API connectivity
-ddev exec .ddev/drupal-ai/scripts/configure-provider.sh test openai
+# List available providers and installed components  
+ddev drupal-ai list
 
-# List current configuration
-ddev exec .ddev/drupal-ai/scripts/configure-provider.sh list
+# Get help
+ddev drupal-ai help
 ```
 
 ## Advanced Usage
 
 ### Validation and Health Checks
 
-```bash
-# Run comprehensive health check
-ddev exec .ddev/drupal-ai/scripts/validate-config.sh health
-
-# Validate specific components
-ddev exec .ddev/drupal-ai/scripts/validate-config.sh provider
-ddev exec .ddev/drupal-ai/scripts/validate-config.sh services
-```
+The main `drupal-ai` command includes built-in validation and health checks that run during setup.
 
 ### Service Management
 
@@ -258,19 +250,17 @@ ddev logs -s <service-name>
 
 **API connection issues**
 ```bash
-# Validate configuration
-ddev exec .ddev/drupal-ai/scripts/validate-config.sh provider
-
-# Test API connectivity
-ddev exec .ddev/drupal-ai/scripts/configure-provider.sh test openai
+# Use the interactive setup to reconfigure
+ddev drupal-ai setup
 ```
 
 ### Reset Configuration
 
-To reset all AI configuration:
+To reset all AI configuration, simply delete the configuration file and run setup again:
 
 ```bash
-ddev exec .ddev/drupal-ai/scripts/configure-provider.sh reset
+rm .ddev/.env.drupal-ai
+ddev drupal-ai setup
 ```
 
 ## Development

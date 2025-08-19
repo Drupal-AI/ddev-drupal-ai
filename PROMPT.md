@@ -1,13 +1,8 @@
-# DDEV Drupal A- ├── commands/web/drupal-ai (CLI implementation)
- ├── drupal-ai/ (namespaced add-on files)
- │   ├── configs/ (YAML configurations)
- │   ├── scripts/ (helper scripts)
- │   └── templates/ (configuration templates)
- ├── tests/test.bats-on Implementation
+# DDEV Drupal AI Add-on Implementation
 
 ## Project Overview
 - **Repository**: Drupal-AI/ddev-drupal-ai (main branch)
-- **Current State**: Basic project structure with CLI implementation
+- **Current State**: Consolidated CLI implementation with all functionality in main command
 - **Goal**: Create interactive CLI orchestration tool for Drupal AI workflows
 - **Reference Issue**: https://www.drupal.org/project/ai/issues/3532795#comment-16218979
 - **Inspiration**: Based on ddev-drupal-suite approach https://github.com/lussoluca/ddev-drupal-suite
@@ -19,8 +14,9 @@ ddev-drupal-ai/
  ├── install.yaml (minimal DDEV v1.24.3+ constraint)
  ├── README.md (describes the vision)
  ├── commands/web/drupal-ai (CLI implementation)
- ├── configs/ (YAML configurations)
- ├── scripts/ (helper scripts)
+ ├── drupal-ai/ (namespaced add-on files)
+ │   ├── configs/ (YAML configurations)
+ │   └── templates/ (configuration templates)
  ├── templates/ (configuration templates)
  ├── tests/test.bats
  └── LICENSE
@@ -112,10 +108,6 @@ Next steps:
  │   │       ├── openai-embeddings.yaml
  │   │       ├── ollama-local.yaml
  │   │       └── anthropic-content.yaml
- │   ├── scripts/
- │   │   ├── install-addon.sh # Add-on installation logic
- │   │   ├── configure-provider.sh # Provider-specific setup
- │   │   └── validate-config.sh # Configuration validation
  │   └── templates/
  │       ├── docker-compose.pgvector.yaml
  │       ├── docker-compose.ollama.yaml
@@ -126,6 +118,7 @@ Next steps:
 - **Language**: Bash (compatible with macOS zsh, Linux bash)
 - **YAML Parsing**: Use `yq` or similar for reading recipe files
 - **Interactive UI**: Use `select` menus, `read` with validation
+- **Consolidated Design**: All functionality contained in main command file
 - **Error Handling**: Comprehensive validation and rollback capability
 - **Logging**: Debug mode with verbose output
 - **Security**: Secure API key handling (no plaintext storage)
@@ -280,7 +273,7 @@ workflows:
 - Contributing guidelines for new recipes
 
 #### Inline Documentation
-- Comprehensive comments in shell scripts
+- Comprehensive comments in main command file
 - YAML schema documentation
 - API integration examples
 - Custom recipe creation guide

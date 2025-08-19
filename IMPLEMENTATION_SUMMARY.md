@@ -20,10 +20,6 @@ ddev-drupal-ai/
 │   │       ├── openai-embeddings.yaml
 │   │       ├── ollama-local.yaml
 │   │       └── anthropic-content.yaml
-│   ├── scripts/
-│   │   ├── install-addon.sh                # Add-on installation (executable)
-│   │   ├── configure-provider.sh           # Provider configuration (executable)
-│   │   └── validate-config.sh              # Configuration validation (executable)
 │   └── templates/
 │       ├── docker-compose.pgvector.yaml
 │       ├── docker-compose.ollama.yaml
@@ -89,17 +85,16 @@ ddev-drupal-ai/
 ✅ Rollback capabilities
 ✅ User-friendly error messages
 
-### Scripts & Utilities
-✅ `install-addon.sh` - Modular add-on installation
-✅ `configure-provider.sh` - Provider configuration management
-✅ `validate-config.sh` - Health checks and validation
+### Consolidated Command Interface
+✅ All functionality consolidated in main `drupal-ai` command
+✅ Interactive setup wizard with guided configuration
+✅ Built-in validation and health checks
 
 ## 🧪 Comprehensive Test Suite
 
 ✅ **Installation tests** - Directory and release installation
 ✅ **Command tests** - All CLI commands
 ✅ **Configuration validation** - YAML syntax and structure
-✅ **Script functionality** - All utility scripts
 ✅ **Template validation** - Docker compose and workflow templates
 ✅ **Error handling** - Invalid commands and inputs
 ✅ **Integration tests** - DDEV integration
@@ -143,7 +138,7 @@ ddev drupal-ai setup
 
 ### Health Check
 ```bash
-ddev exec .ddev/drupal-ai/scripts/validate-config.sh health
+ddev drupal-ai list  # Shows current status and available options
 ```
 
 ## 🧬 Architecture Highlights
