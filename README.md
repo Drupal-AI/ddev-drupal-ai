@@ -177,7 +177,7 @@ ddev exec .ddev/drupal-ai/scripts/configure-provider.sh list
 
 ```bash
 # Run comprehensive health check
-ddev exec .ddev/scripts/validate-config.sh health
+ddev exec .ddev/drupal-ai/scripts/validate-config.sh health
 
 # Validate specific components
 ddev exec .ddev/drupal-ai/scripts/validate-config.sh provider

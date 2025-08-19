@@ -10,23 +10,24 @@ I have successfully implemented the complete DDEV Drupal AI Add-on as specified 
 ddev-drupal-ai/
 ├── commands/
 │   └── web/
-│       └── drupal-ai                       # Main CLI script (executable)
-├── configs/
-│   ├── providers.yaml                      # AI provider definitions
-│   ├── functionalities.yaml                # Available AI features
-│   ├── dependencies.yaml                   # Add-on dependency mapping
-│   └── workflows/
-│       ├── openai-embeddings.yaml          # OpenAI workflow
-│       ├── ollama-local.yaml               # Ollama workflow
-│       └── anthropic-content.yaml          # Anthropic workflow
-├── scripts/
-│   ├── install-addon.sh                    # Add-on installation logic (executable)
-│   ├── configure-provider.sh               # Provider configuration (executable)
-│   └── validate-config.sh                  # Configuration validation (executable)
-├── templates/
-│   ├── docker-compose.pgvector.yaml
-│   ├── docker-compose.ollama.yaml
-│   └── .env.drupal-ai.template
+│       └── drupal-ai                      # Main CLI command (executable)
+├── drupal-ai/                             # Namespaced add-on files
+│   ├── configs/
+│   │   ├── providers.yaml                 # AI provider definitions
+│   │   ├── functionalities.yaml           # Available AI features
+│   │   ├── dependencies.yaml              # Add-on dependency mapping
+│   │   └── workflows/
+│   │       ├── openai-embeddings.yaml
+│   │       ├── ollama-local.yaml
+│   │       └── anthropic-content.yaml
+│   ├── scripts/
+│   │   ├── install-addon.sh                # Add-on installation (executable)
+│   │   ├── configure-provider.sh           # Provider configuration (executable)
+│   │   └── validate-config.sh              # Configuration validation (executable)
+│   └── templates/
+│       ├── docker-compose.pgvector.yaml
+│       ├── docker-compose.ollama.yaml
+│       └── .env.drupal-ai.template
 ├── install.yaml                            # Updated with all new files
 ├── README.md                               # Comprehensive documentation
 ├── PROMPT.md                               # Improved heading hierarchy
@@ -142,7 +143,7 @@ ddev drupal-ai setup
 
 ### Health Check
 ```bash
-ddev exec .ddev/scripts/validate-config.sh health
+ddev exec .ddev/drupal-ai/scripts/validate-config.sh health
 ```
 
 ## 🧬 Architecture Highlights

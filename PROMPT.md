@@ -1,4 +1,9 @@
-# DDEV Drupal AI Add-on Implementation
+# DDEV Drupal A- ├── commands/web/drupal-ai (CLI implementation)
+ ├── drupal-ai/ (namespaced add-on files)
+ │   ├── configs/ (YAML configurations)
+ │   ├── scripts/ (helper scripts)
+ │   └── templates/ (configuration templates)
+ ├── tests/test.bats-on Implementation
 
 ## Project Overview
 - **Repository**: Drupal-AI/ddev-drupal-ai (main branch)
@@ -98,22 +103,23 @@ Next steps:
  ├── commands/
  │   └── web/
  │       └── drupal-ai # Main CLI script
- ├── configs/
- │   ├── providers.yaml # AI provider definitions
- │   ├── functionalities.yaml # Available AI features
- │   ├── dependencies.yaml # Add-on dependency mapping
- │   └── workflows/
- │       ├── openai-embeddings.yaml
- │       ├── ollama-local.yaml
- │       └── anthropic-content.yaml
- ├── scripts/
- │   ├── install-addon.sh # Add-on installation logic
- │   ├── configure-provider.sh # Provider-specific setup
- │   └── validate-config.sh # Configuration validation
- └── templates/
-     ├── docker-compose.pgvector.yaml
-     ├── docker-compose.ollama.yaml
-     └── .env.drupal-ai.template
+ ├── drupal-ai/
+ │   ├── configs/
+ │   │   ├── providers.yaml # AI provider definitions
+ │   │   ├── functionalities.yaml # Available AI features
+ │   │   ├── dependencies.yaml # Add-on dependency mapping
+ │   │   └── workflows/
+ │   │       ├── openai-embeddings.yaml
+ │   │       ├── ollama-local.yaml
+ │   │       └── anthropic-content.yaml
+ │   ├── scripts/
+ │   │   ├── install-addon.sh # Add-on installation logic
+ │   │   ├── configure-provider.sh # Provider-specific setup
+ │   │   └── validate-config.sh # Configuration validation
+ │   └── templates/
+ │       ├── docker-compose.pgvector.yaml
+ │       ├── docker-compose.ollama.yaml
+ │       └── .env.drupal-ai.template
 ```
 
 ## Core Script Requirements (.ddev/commands/web/drupal-ai)

@@ -48,17 +48,22 @@ health_checks() {
   assert_file_exists ".ddev/drupal-ai/configs/providers.yaml"
   assert_file_exists ".ddev/drupal-ai/configs/functionalities.yaml"
   assert_file_exists ".ddev/drupal-ai/configs/dependencies.yaml"
-  
+
   # Check if scripts are executable
   assert_file_exists ".ddev/drupal-ai/scripts/install-addon.sh"
   assert_file_executable ".ddev/drupal-ai/scripts/install-addon.sh"
-  
-  # Test basic YAML parsing
-  run yq eval '.providers | keys' .ddev/drupal-ai/configs/providers.yaml
+
+  # Test basic YAML parsing using Python (available in standard Ubuntu)
+  run ddev exec "python3 -c \"import yaml; yaml.safe_load(open('.ddev/drupal-ai/configs/providers.yaml'))\""
   assert_success
-  assert_output --partial "openai"
-  assert_output --partial "anthropic"
-  assert_output --partial "ollama"
+  
+  # Check for provider names in the file
+  run grep -q "openai:" .ddev/drupal-ai/configs/providers.yaml
+  assert_success
+  run grep -q "anthropic:" .ddev/drupal-ai/configs/providers.yaml
+  assert_success
+  run grep -q "ollama:" .ddev/drupal-ai/configs/providers.yaml
+  assert_success
 }
 
 teardown() {
@@ -100,7 +105,7 @@ teardown() {
   assert_success
   run ddev restart -y
   assert_success
-  
+
   run ddev drupal-ai help
   assert_success
   assert_output --partial "Interactive CLI orchestration tool"
@@ -115,7 +120,7 @@ teardown() {
   assert_success
   run ddev restart -y
   assert_success
-  
+
   run ddev drupal-ai list
   assert_success
   assert_output --partial "Available AI Providers"
@@ -131,24 +136,24 @@ teardown() {
   assert_success
   run ddev restart -y
   assert_success
-  
-  # Test YAML syntax validation
-  run yq eval '.' .ddev/drupal-ai/configs/providers.yaml
+
+  # Test YAML syntax validation using Python
+  run ddev exec "python3 -c \"import yaml; yaml.safe_load(open('.ddev/drupal-ai/configs/providers.yaml'))\""
   assert_success
-  
-  run yq eval '.' .ddev/drupal-ai/configs/functionalities.yaml
+
+  run ddev exec "python3 -c \"import yaml; yaml.safe_load(open('.ddev/drupal-ai/configs/functionalities.yaml'))\""
   assert_success
-  
-  run yq eval '.' .ddev/drupal-ai/configs/dependencies.yaml
+
+  run ddev exec "python3 -c \"import yaml; yaml.safe_load(open('.ddev/drupal-ai/configs/dependencies.yaml'))\""
   assert_success
-  
-  # Test specific provider configuration
-  run yq eval '.providers.openai.name' .ddev/drupal-ai/configs/providers.yaml
+
+  # Test specific provider configuration using grep and Python
+  run ddev exec "python3 -c \"import yaml; data = yaml.safe_load(open('.ddev/drupal-ai/configs/providers.yaml')); print(data['providers']['openai']['name'])\""
   assert_success
   assert_output "OpenAI"
-  
+
   # Test functionality configuration
-  run yq eval '.functionalities."vector-search".name' .ddev/drupal-ai/configs/functionalities.yaml
+  run ddev exec "python3 -c \"import yaml; data = yaml.safe_load(open('.ddev/drupal-ai/configs/functionalities.yaml')); print(data['functionalities']['vector-search']['name'])\""
   assert_success
   assert_output "Vector Search & Embeddings"
 }
@@ -159,23 +164,23 @@ teardown() {
   assert_success
   run ddev restart -y
   assert_success
-  
+
   # Test validation script
   run ddev exec ".ddev/drupal-ai/scripts/validate-config.sh ddev"
   assert_success
-  
+
   # Test configure provider script (dry run)
   run ddev exec ".ddev/drupal-ai/scripts/configure-provider.sh list"
   assert_success
 }
 
-@test "docker-compose templates exist" {
+@test "environment template file exists" {
   set -eu -o pipefail
   run ddev add-on get "${DIR}"
   assert_success
-  
+
   assert_file_exists ".ddev/drupal-ai/templates/.env.drupal-ai.template"
-  
+
   # Test environment template file syntax - it should be a valid environment file
   run grep -q "DRUPAL_AI_PROVIDER=" .ddev/drupal-ai/templates/.env.drupal-ai.template
   assert_success
@@ -185,17 +190,17 @@ teardown() {
   set -eu -o pipefail
   run ddev add-on get "${DIR}"
   assert_success
-  
+
   assert_file_exists ".ddev/drupal-ai/configs/workflows/openai-embeddings.yaml"
   assert_file_exists ".ddev/drupal-ai/configs/workflows/ollama-local.yaml"
   assert_file_exists ".ddev/drupal-ai/configs/workflows/anthropic-content.yaml"
-  
-  # Test workflow YAML syntax
-  run yq eval '.' .ddev/drupal-ai/configs/workflows/openai-embeddings.yaml
+
+  # Test workflow YAML syntax using Python
+  run ddev exec "python3 -c \"import yaml; yaml.safe_load(open('.ddev/drupal-ai/configs/workflows/openai-embeddings.yaml'))\""
   assert_success
-  
+
   # Test workflow structure
-  run yq eval '.name' .ddev/drupal-ai/configs/workflows/openai-embeddings.yaml
+  run ddev exec "python3 -c \"import yaml; data = yaml.safe_load(open('.ddev/drupal-ai/configs/workflows/openai-embeddings.yaml')); print(data['name'])\""
   assert_success
   assert_output "OpenAI with Vector Search"
 }
@@ -206,7 +211,7 @@ teardown() {
   assert_success
   run ddev restart -y
   assert_success
-  
+
   # Test invalid command
   run ddev drupal-ai invalid-command
   assert_failure
@@ -217,18 +222,18 @@ teardown() {
   set -eu -o pipefail
   run ddev add-on get "${DIR}"
   assert_success
-  
+
   # Test that all required providers have proper structure
   local providers=("openai" "anthropic" "ollama" "google_gemini")
-  
+
   for provider in "${providers[@]}"; do
-    run yq eval ".providers.${provider}.name" .ddev/drupal-ai/configs/providers.yaml
+    run ddev exec "python3 -c \"import yaml; data = yaml.safe_load(open('.ddev/drupal-ai/configs/providers.yaml')); print(data['providers']['${provider}']['name'])\""
     assert_success
-    
-    run yq eval ".providers.${provider}.description" .ddev/drupal-ai/configs/providers.yaml
+
+    run ddev exec "python3 -c \"import yaml; data = yaml.safe_load(open('.ddev/drupal-ai/configs/providers.yaml')); print(data['providers']['${provider}']['description'])\""
     assert_success
-    
-    run yq eval ".providers.${provider}.capabilities" .ddev/drupal-ai/configs/providers.yaml
+
+    run ddev exec "python3 -c \"import yaml; data = yaml.safe_load(open('.ddev/drupal-ai/configs/providers.yaml')); print(len(data['providers']['${provider}']['capabilities']))\""
     assert_success
   done
 }
@@ -237,14 +242,14 @@ teardown() {
   set -eu -o pipefail
   run ddev add-on get "${DIR}"
   assert_success
-  
+
   # Test that vector-search requires pgvector
-  run yq eval '.functionalities."vector-search".required_addons[]' .ddev/drupal-ai/configs/functionalities.yaml
+  run ddev exec "python3 -c \"import yaml; data = yaml.safe_load(open('.ddev/drupal-ai/configs/functionalities.yaml')); print(' '.join(data['functionalities']['vector-search']['required_addons']))\""
   assert_success
   assert_output --partial "pgvector"
-  
+
   # Test that qa-system requires embeddings capability
-  run yq eval '.functionalities."qa-system".required_capabilities[]' .ddev/drupal-ai/configs/functionalities.yaml
+  run ddev exec "python3 -c \"import yaml; data = yaml.safe_load(open('.ddev/drupal-ai/configs/functionalities.yaml')); print(' '.join(data['functionalities']['qa-system']['required_capabilities']))\""
   assert_success
   assert_output --partial "embeddings"
 }
@@ -253,19 +258,19 @@ teardown() {
   set -eu -o pipefail
   run ddev add-on get "${DIR}"
   assert_success
-  
+
   # Test workflow configuration uses direct identifiers
-  run yq eval '.workflows."openai-embeddings".required_addons[0]' .ddev/configs/dependencies.yaml
+  run ddev exec "python3 -c \"import yaml; data = yaml.safe_load(open('.ddev/drupal-ai/configs/dependencies.yaml')); print(data['workflows']['openai-embeddings']['required_addons'][0])\""
   assert_success
   assert_output "robertoperuzzo/ddev-pgvector"
-  
+
   # Test ollama workflow uses direct identifiers
-  run yq eval '.workflows."ollama-local".required_addons[0]' .ddev/configs/dependencies.yaml
+  run ddev exec "python3 -c \"import yaml; data = yaml.safe_load(open('.ddev/drupal-ai/configs/dependencies.yaml')); print(data['workflows']['ollama-local']['required_addons'][0])\""
   assert_success
   assert_output "stinis87/ddev-ollama"
-  
+
   # Test workflow configuration
-  run yq eval '.workflows."openai-embeddings".provider' .ddev/configs/dependencies.yaml
+  run ddev exec "python3 -c \"import yaml; data = yaml.safe_load(open('.ddev/drupal-ai/configs/dependencies.yaml')); print(data['workflows']['openai-embeddings']['provider'])\""
   assert_success
   assert_output "openai"
 }
@@ -274,10 +279,10 @@ teardown() {
   set -eu -o pipefail
   run ddev add-on get "${DIR}"
   assert_success
-  
+
   # Check that main command is executable
   assert_file_executable ".ddev/commands/web/drupal-ai"
-  
+
   # Check that all scripts are executable
   assert_file_executable ".ddev/drupal-ai/scripts/install-addon.sh"
   assert_file_executable ".ddev/drupal-ai/scripts/configure-provider.sh"
@@ -290,11 +295,11 @@ teardown() {
   assert_success
   run ddev restart -y
   assert_success
-  
+
   # Test that the add-on integrates properly with ddev
   run ddev describe
   assert_success
-  
+
   # Check that services can be listed
   run ddev list
   assert_success

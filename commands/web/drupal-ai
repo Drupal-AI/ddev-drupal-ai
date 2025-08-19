@@ -9,9 +9,9 @@ set -euo pipefail
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIGS_DIR="${DDEV_APPROOT}/.ddev/configs"
-SCRIPTS_DIR="${DDEV_APPROOT}/.ddev/scripts"
-TEMPLATES_DIR="${DDEV_APPROOT}/.ddev/templates"
+CONFIGS_DIR="${DDEV_APPROOT}/.ddev/drupal-ai/configs"
+SCRIPTS_DIR="${DDEV_APPROOT}/.ddev/drupal-ai/scripts"
+TEMPLATES_DIR="${DDEV_APPROOT}/.ddev/drupal-ai/templates"
 CONFIG_FILE="${DDEV_APPROOT}/.ddev/.env.drupal-ai"
 GITIGNORE_FILE="${DDEV_APPROOT}/.ddev/.gitignore"
 

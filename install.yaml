@@ -2,15 +2,15 @@ name: drupal-ai
 
 project_files:
   - commands/web/drupal-ai
-  - configs/providers.yaml
-  - configs/functionalities.yaml
-  - configs/dependencies.yaml
-  - configs/workflows/openai-embeddings.yaml
-  - configs/workflows/ollama-local.yaml
-  - configs/workflows/anthropic-content.yaml
-  - scripts/install-addon.sh
-  - scripts/configure-provider.sh
-  - scripts/validate-config.sh
-  - templates/.env.drupal-ai.template
+  - drupal-ai/configs/providers.yaml
+  - drupal-ai/configs/functionalities.yaml
+  - drupal-ai/configs/dependencies.yaml
+  - drupal-ai/configs/workflows/openai-embeddings.yaml
+  - drupal-ai/configs/workflows/ollama-local.yaml
+  - drupal-ai/configs/workflows/anthropic-content.yaml
+  - drupal-ai/scripts/install-addon.sh
+  - drupal-ai/scripts/configure-provider.sh
+  - drupal-ai/scripts/validate-config.sh
+  - drupal-ai/templates/.env.drupal-ai.template
 
 ddev_version_constraint: '>= v1.24.3'
