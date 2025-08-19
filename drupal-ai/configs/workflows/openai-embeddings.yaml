@@ -1,0 +1,52 @@
+## #ddev-generated
+# OpenAI + Embeddings Workflow
+# This workflow sets up OpenAI with vector search capabilities
+
+name: "OpenAI with Vector Search"
+description: "Complete setup for OpenAI-powered semantic search and content generation"
+
+provider: openai
+
+required_services:
+  - pgvector
+  - redis
+
+environment_variables:
+  # OpenAI Configuration
+  OPENAI_API_KEY: "${OPENAI_API_KEY}"
+  OPENAI_MODEL: "${OPENAI_MODEL:-gpt-4}"
+  OPENAI_BASE_URL: "${OPENAI_BASE_URL:-https://api.openai.com/v1}"
+
+  # Vector Database Configuration (pgvector service)
+  POSTGRES_DB: "${POSTGRES_DB:-drupal_ai}"
+  POSTGRES_USER: "${POSTGRES_USER:-drupal_ai}"
+  POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-drupal_ai}"
+
+  # Redis Configuration
+  REDIS_URL: "redis://redis:6379"
+
+drupal_modules:
+  required:
+    - ai
+    - ai_search
+    - search_api
+    - ai_content
+  recommended:
+    - ai_logging
+    - ai_admin
+
+docker_compose_additions:
+  # Note: pgvector and redis services are provided by their respective add-ons
+  # This section documents the expected service configuration
+  pgvector:
+    # Provided by robertoperuzzo/ddev-pgvector
+    expected_image: "pgvector/pgvector:pg16"
+    expected_ports: ["5432:5432"]
+
+  redis:
+    # Provided by drud/ddev-redis (if installed)
+    expected_image: "redis:7-alpine"
+    expected_ports: ["6379:6379"]
+
+volumes:
+  # Note: Volumes are managed by the respective add-ons

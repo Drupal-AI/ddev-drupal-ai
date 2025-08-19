@@ -1,0 +1,44 @@
+## #ddev-generated
+
+functionalities:
+  vector-search:
+    name: "Vector Search & Embeddings"
+    description: "Semantic search using vector databases"
+    required_addons: ["robertoperuzzo/ddev-pgvector"]
+    required_capabilities: ["embeddings"]
+    drupal_modules: ["ai", "ai_search", "search_api"]
+
+  content-generation:
+    name: "Content Generation"
+    description: "AI-powered content creation"
+    required_addons: []
+    required_capabilities: ["text-generation"]
+    drupal_modules: ["ai", "ai_content"]
+
+  image-analysis:
+    name: "Image Analysis"
+    description: "AI-powered image recognition and analysis"
+    required_addons: []
+    required_capabilities: ["image-analysis"]
+    drupal_modules: ["ai", "ai_vision"]
+
+  qa-system:
+    name: "Q&A System"
+    description: "Intelligent question answering"
+    required_addons: ["robertoperuzzo/ddev-pgvector"]
+    required_capabilities: ["text-generation", "embeddings"]
+    drupal_modules: ["ai", "ai_qa", "search_api"]
+
+  code-assistant:
+    name: "Code Assistant"
+    description: "AI-powered code generation and assistance"
+    required_addons: []
+    required_capabilities: ["text-generation"]
+    drupal_modules: ["ai", "ai_code"]
+
+  document-processing:
+    name: "Document Processing"
+    description: "Extract and process various document formats"
+    required_addons: ["robertoperuzzo/ddev-unstructured"]
+    required_capabilities: ["text-generation"]
+    drupal_modules: ["ai", "ai_documents"]

@@ -1,0 +1,47 @@
+#ddev-generated
+# Ollama Local LLM Workflow
+# This workflow sets up local LLM execution with Ollama
+
+name: "Ollama Local LLM"
+description: "Self-hosted AI with local language models"
+
+provider: ollama
+
+required_services:
+  - ollama
+  - pgvector
+
+environment_variables:
+  # Ollama Configuration
+  OLLAMA_HOST: "${OLLAMA_HOST:-http://ollama:11434}"
+  OLLAMA_MODEL: "${OLLAMA_MODEL:-llama3}"
+
+  # Vector Database Configuration
+  POSTGRES_DB: "${POSTGRES_DB:-drupal_ai}"
+  POSTGRES_USER: "${POSTGRES_USER:-drupal_ai}"
+  POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-drupal_ai}"
+
+drupal_modules:
+  required:
+    - ai
+    - ai_ollama
+    - ai_search
+    - search_api
+  recommended:
+    - ai_logging
+    - ai_admin
+
+docker_compose_additions:
+  # Note: ollama and pgvector services are provided by their respective add-ons
+  ollama:
+    # Provided by stinis87/ddev-ollama
+    expected_image: "ollama/ollama:latest"
+    expected_ports: ["11434:11434"]
+
+  pgvector:
+    # Provided by robertoperuzzo/ddev-pgvector
+    expected_image: "pgvector/pgvector:pg16"
+    expected_ports: ["5432:5432"]
+
+volumes:
+  # Note: Volumes are managed by the respective add-ons

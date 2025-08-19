@@ -1,0 +1,32 @@
+## #ddev-generated
+# Workflow definitions for different AI setups
+# Each workflow defines provider, functionalities, and required add-ons
+
+workflows:
+  openai-embeddings:
+    name: "OpenAI + Vector Search"
+    provider: "openai"
+    functionalities: ["vector-search", "content-generation"]
+    required_addons: ["robertoperuzzo/ddev-pgvector"]
+    docker_services: ["pgvector", "redis"]
+
+  ollama-local:
+    name: "Ollama Local Setup"
+    provider: "ollama"
+    functionalities: ["content-generation", "vector-search"]
+    required_addons: ["stinis87/ddev-ollama", "robertoperuzzo/ddev-pgvector"]
+    docker_services: ["ollama", "pgvector"]
+
+  anthropic-content:
+    name: "Anthropic Content Generation"
+    provider: "anthropic"
+    functionalities: ["content-generation", "qa-system"]
+    required_addons: ["robertoperuzzo/ddev-pgvector"]
+    docker_services: ["pgvector"]
+
+  complete-ai-stack:
+    name: "Complete AI Stack"
+    provider: "openai"
+    functionalities: ["vector-search", "content-generation", "document-processing", "qa-system"]
+    required_addons: ["robertoperuzzo/ddev-pgvector", "robertoperuzzo/ddev-unstructured", "ddev/ddev-redis"]
+    docker_services: ["pgvector", "unstructured", "redis"]

@@ -1,0 +1,504 @@
+#!/usr/bin/env bash
+
+## #ddev-generated
+## Description: Interactive CLI orchestration tool for Drupal AI workflows
+## Usage: drupal-ai [command]
+## Example: "ddev drupal-ai setup" or "ddev drupal-ai list"
+
+set -euo pipefail
+
+# Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIGS_DIR="${DDEV_APPROOT}/.ddev/drupal-ai/configs"
+TEMPLATES_DIR="${DDEV_APPROOT}/.ddev/drupal-ai/templates"
+CONFIG_FILE="${DDEV_APPROOT}/.ddev/.env.drupal-ai"
+GITIGNORE_FILE="${DDEV_APPROOT}/.ddev/.gitignore"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${BLUE}ℹ ${1}${NC}"
+}
+
+log_success() {
+    echo -e "${GREEN}✅ ${1}${NC}"
+}
+
+log_warning() {
+    echo -e "${YELLOW}⚠ ${1}${NC}"
+}
+
+log_error() {
+    echo -e "${RED}❌ ${1}${NC}"
+}
+
+log_step() {
+    echo -e "${PURPLE}📦 ${1}${NC}"
+}
+
+# Check if yq is available (for YAML parsing)
+check_dependencies() {
+    if ! command -v yq &> /dev/null; then
+        log_error "yq is required but not installed. Installing..."
+        if command -v brew &> /dev/null; then
+            brew install yq
+        else
+            log_error "Please install yq manually: https://github.com/mikefarah/yq#install"
+            exit 1
+        fi
+    fi
+}
+
+# Load configuration
+load_config() {
+    if [[ -f "$CONFIG_FILE" ]]; then
+        # shellcheck disable=SC1090
+        source "$CONFIG_FILE"
+    fi
+}
+
+# Ensure config file is protected from git commits
+protect_config_from_git() {
+    # Add .env.drupal-ai to .ddev/.gitignore if it doesn't exist
+    if [[ ! -f "$GITIGNORE_FILE" ]]; then
+        touch "$GITIGNORE_FILE"
+    fi
+
+    if ! grep -q "\.env\.drupal-ai" "$GITIGNORE_FILE" 2>/dev/null; then
+        echo ".env.drupal-ai" >> "$GITIGNORE_FILE"
+        log_info "Added .env.drupal-ai to .ddev/.gitignore for security"
+    fi
+}
+
+# Save configuration
+save_config() {
+    local key="$1"
+    local value="$2"
+
+    # Create or ensure config file exists
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        echo "${key}=${value}" > "$CONFIG_FILE"
+        return
+    fi
+
+    # Use a temporary file to avoid sed delimiter issues
+    local temp_file="${CONFIG_FILE}.tmp"
+
+    # Check if the file is readable and contains valid key=value pairs
+    if ! grep -q "=" "$CONFIG_FILE" 2>/dev/null; then
+        # File is corrupted or empty, recreate it
+        echo "${key}=${value}" > "$CONFIG_FILE"
+        return
+    fi
+
+    if grep -q "^${key}=" "$CONFIG_FILE" 2>/dev/null; then
+        # Update existing key by rewriting the file
+        if grep -v "^${key}=" "$CONFIG_FILE" > "$temp_file" 2>/dev/null; then
+            echo "${key}=${value}" >> "$temp_file"
+            mv "$temp_file" "$CONFIG_FILE"
+        else
+            # If grep fails, recreate the file
+            echo "${key}=${value}" > "$CONFIG_FILE"
+        fi
+    else
+        # Add new key
+        echo "${key}=${value}" >> "$CONFIG_FILE"
+    fi
+}
+
+# Display available providers
+list_providers() {
+    log_info "Available AI Providers:"
+    if [[ -f "${CONFIGS_DIR}/providers.yaml" ]]; then
+        yq eval '.providers | keys | .[]' "${CONFIGS_DIR}/providers.yaml" | while read -r provider; do
+            local name=$(yq eval ".providers.${provider}.name" "${CONFIGS_DIR}/providers.yaml")
+            local description=$(yq eval ".providers.${provider}.description" "${CONFIGS_DIR}/providers.yaml")
+            echo -e "  ${CYAN}${provider}${NC}: ${name} - ${description}"
+        done
+    else
+        log_error "Providers configuration not found"
+        exit 1
+    fi
+}
+
+# Display available functionalities
+list_functionalities() {
+    log_info "Available AI Functionalities:"
+    if [[ -f "${CONFIGS_DIR}/functionalities.yaml" ]]; then
+        yq eval '.functionalities | keys | .[]' "${CONFIGS_DIR}/functionalities.yaml" | while read -r functionality; do
+            local name=$(yq eval ".functionalities.${functionality}.name" "${CONFIGS_DIR}/functionalities.yaml")
+            local description=$(yq eval ".functionalities.${functionality}.description" "${CONFIGS_DIR}/functionalities.yaml")
+            echo -e "  ${CYAN}${functionality}${NC}: ${name} - ${description}"
+        done
+    else
+        log_error "Functionalities configuration not found"
+        exit 1
+    fi
+}
+
+# Display installed add-ons
+list_installed_addons() {
+    log_info "Checking installed add-ons..."
+
+    local addons_found=false
+
+    # Check for pgvector (robertoperuzzo/ddev-pgvector)
+    if [[ -f "${DDEV_APPROOT}/.ddev/docker-compose.pgvector.yaml" ]]; then
+        echo -e "  ${GREEN}✓${NC} pgvector (PostgreSQL with vector extension)"
+        addons_found=true
+    fi
+
+    # Check for unstructured
+    if [[ -f "${DDEV_APPROOT}/.ddev/docker-compose.unstructured.yaml" ]]; then
+        echo -e "  ${GREEN}✓${NC} unstructured (Document processing)"
+        addons_found=true
+    fi
+
+    # Check for ollama (stinis87/ddev-ollama)
+    if [[ -f "${DDEV_APPROOT}/.ddev/docker-compose.ollama.yaml" ]]; then
+        echo -e "  ${GREEN}✓${NC} ollama (Local LLM server)"
+        addons_found=true
+    fi
+
+    # Check for redis
+    if [[ -f "${DDEV_APPROOT}/.ddev/docker-compose.redis.yaml" ]]; then
+        echo -e "  ${GREEN}✓${NC} redis (Cache service)"
+        addons_found=true
+    fi
+
+    if [[ "$addons_found" == "false" ]]; then
+        log_warning "No AI-related add-ons found"
+    fi
+}
+
+# Interactive provider selection
+select_provider() {
+    echo -e "\n${PURPLE}🤖 Drupal AI Setup Wizard${NC}" >&2
+    echo "========================" >&2
+    echo "" >&2
+    echo "Step 1: Select AI Provider" >&2
+
+    if [[ ! -f "${CONFIGS_DIR}/providers.yaml" ]]; then
+        log_error "Providers configuration not found"
+        exit 1
+    fi
+
+    log_info "What AI provider do you want? (Enter a number)" >&2
+
+    local providers=()
+    local provider_keys=()
+    local counter=1
+
+    while IFS= read -r provider; do
+        local name=$(yq eval ".providers.${provider}.name" "${CONFIGS_DIR}/providers.yaml")
+        local description=$(yq eval ".providers.${provider}.description" "${CONFIGS_DIR}/providers.yaml")
+        echo "  ${counter}. ${name} - ${description}" >&2
+        providers+=("${name}")
+        provider_keys+=("${provider}")
+        ((counter++))
+    done < <(yq eval '.providers | keys | .[]' "${CONFIGS_DIR}/providers.yaml")
+
+    echo -n "Your selection: " >&2
+    read -r selection
+
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le "${#provider_keys[@]}" ]]; then
+        local selected_index=$((selection - 1))
+        local selected_provider="${provider_keys[$selected_index]}"
+        echo "Selected: ${providers[$selected_index]}" >&2
+        echo "$selected_provider"
+        return
+    else
+        log_error "Invalid selection. Please try again." >&2
+        exit 1
+    fi
+}
+
+# Interactive functionality selection
+select_functionalities() {
+    local provider="$1"
+    echo "" >&2
+    echo "Step 2: Select Functionality" >&2
+
+    if [[ ! -f "${CONFIGS_DIR}/functionalities.yaml" ]]; then
+        log_error "Functionalities configuration not found"
+        exit 1
+    fi
+
+    log_info "What AI features do you need? (Enter numbers separated by spaces, e.g., '1 2 3')" >&2
+
+    local functionalities=()
+    local functionality_keys=()
+    local counter=1
+
+    while IFS= read -r functionality; do
+        local name=$(yq eval ".functionalities.${functionality}.name" "${CONFIGS_DIR}/functionalities.yaml")
+        local description=$(yq eval ".functionalities.${functionality}.description" "${CONFIGS_DIR}/functionalities.yaml")
+        echo "  ${counter}. ${name} - ${description}" >&2
+        functionalities+=("${name}")
+        functionality_keys+=("${functionality}")
+        ((counter++))
+    done < <(yq eval '.functionalities | keys | .[]' "${CONFIGS_DIR}/functionalities.yaml")
+
+    echo -n "Your selection: " >&2
+    read -r selection
+
+    local selected_functionalities=()
+    for num in $selection; do
+        if [[ "$num" =~ ^[0-9]+$ ]] && [[ "$num" -ge 1 ]] && [[ "$num" -le "${#functionality_keys[@]}" ]]; then
+            local index=$((num - 1))
+            selected_functionalities+=("${functionality_keys[$index]}")
+        fi
+    done
+
+    printf '%s\n' "${selected_functionalities[@]}"
+}
+
+# Analyze dependencies
+analyze_dependencies() {
+    local provider="$1"
+    shift
+    local functionalities=("$@")
+
+    echo "" >&2
+    echo "Step 3: Dependencies Analysis" >&2
+
+    if [[ ! -f "${CONFIGS_DIR}/dependencies.yaml" ]]; then
+        log_error "Dependencies configuration not found"
+        exit 1
+    fi
+
+    local required_addons=()
+
+    # Check provider dependencies
+    local provider_deps
+    provider_deps=$(yq eval ".providers.${provider}.dependencies[]?" "${CONFIGS_DIR}/providers.yaml" 2>/dev/null || echo "")
+    if [[ -n "$provider_deps" ]]; then
+        while IFS= read -r dep; do
+            [[ -n "$dep" ]] && required_addons+=("$dep")
+        done <<< "$provider_deps"
+    fi
+
+    # Check functionality dependencies
+    for functionality in "${functionalities[@]}"; do
+        local func_deps
+        func_deps=$(yq eval ".functionalities.${functionality}.required_addons[]?" "${CONFIGS_DIR}/functionalities.yaml" 2>/dev/null || echo "")
+        if [[ -n "$func_deps" ]]; then
+            while IFS= read -r dep; do
+                [[ -n "$dep" ]] && required_addons+=("$dep")
+            done <<< "$func_deps"
+        fi
+    done
+
+    # Remove duplicates
+    local unique_addons=($(printf "%s\n" "${required_addons[@]}" | sort -u))
+
+    if [[ ${#unique_addons[@]} -gt 0 ]]; then
+        log_step "Required add-ons for your selection:" >&2
+        for addon in "${unique_addons[@]}"; do
+            echo "  - ${addon} → Will install" >&2
+        done
+
+        echo "" >&2
+        echo -n "? Proceed with installation? (Y/n): " >&2
+        read -r proceed
+        if [[ "$proceed" =~ ^[Nn] ]]; then
+            log_warning "Installation cancelled" >&2
+            exit 0
+        fi
+    else
+        log_info "No additional add-ons required" >&2
+    fi
+
+    printf '%s\n' "${unique_addons[@]}"
+}
+
+# Install add-on
+install_addon() {
+    local addon_identifier="$1"
+
+    log_step "Installing add-on: ${addon_identifier}..."
+
+    # Use ddev add-on get to install the add-on directly
+    if ddev add-on get "$addon_identifier"; then
+        log_success "Successfully installed ${addon_identifier}"
+        return 0
+    else
+        log_error "Failed to install ${addon_identifier}"
+        return 1
+    fi
+}
+
+# Configure provider
+configure_provider() {
+    local provider="$1"
+
+    echo "" >&2
+    echo "Step 5: Configuration" >&2
+    echo "" >&2
+    log_warning "🔒 Security Notice:" >&2
+    echo "  • Configuration will be stored in .ddev/.env.drupal-ai" >&2
+    echo "  • This file is automatically added to .gitignore" >&2
+    echo "  • Never commit API keys to version control" >&2
+    echo "" >&2
+
+    if [[ ! -f "${CONFIGS_DIR}/providers.yaml" ]]; then
+        log_error "Providers configuration not found"
+        return 1
+    fi
+
+    # Get required variables
+    local required_vars
+    required_vars=$(yq eval ".providers.${provider}.required_vars[]?" "${CONFIGS_DIR}/providers.yaml" 2>/dev/null || echo "")
+
+    if [[ -n "$required_vars" ]]; then
+        while IFS= read -r var; do
+            [[ -z "$var" ]] && continue
+            echo -n "? ${var}: " >&2
+            if [[ "$var" == *"KEY"* ]] || [[ "$var" == *"TOKEN"* ]]; then
+                # Secure input for API keys
+                read -rs value </dev/tty
+                echo "" >&2
+            else
+                read -r value </dev/tty
+            fi
+            save_config "$var" "$value"
+        done <<< "$required_vars"
+    fi
+
+    # Get optional variables with defaults
+    local optional_vars
+    optional_vars=$(yq eval ".providers.${provider}.optional_vars | to_entries | .[] | \"\(.key):\(.value)\"" "${CONFIGS_DIR}/providers.yaml" 2>/dev/null || echo "")
+
+    if [[ -n "$optional_vars" ]]; then
+        while IFS=: read -r var default_value; do
+            [[ -z "$var" ]] && continue
+            echo -n "? ${var} (${default_value}): " >&2
+            read -r value </dev/tty
+            save_config "$var" "${value:-$default_value}"
+        done <<< "$optional_vars"
+    fi
+}
+
+# Main setup workflow
+setup_workflow() {
+    log_info "Starting Drupal AI setup..."
+
+    # Create fresh configuration file
+    log_info "Creating fresh configuration..."
+    if [[ -f "$CONFIG_FILE" ]]; then
+        rm -f "$CONFIG_FILE"
+    fi
+    touch "$CONFIG_FILE"
+
+    # Protect config file from git commits
+    protect_config_from_git
+
+    # Step 1: Select provider
+    local provider
+    provider=$(select_provider)
+
+    # Step 2: Select functionalities
+    local functionalities
+    readarray -t functionalities < <(select_functionalities "$provider")
+
+    # Step 3: Analyze dependencies
+    local required_addons
+    readarray -t required_addons < <(analyze_dependencies "$provider" "${functionalities[@]}")
+
+    # Step 4: Install add-ons
+    if [[ ${#required_addons[@]} -gt 0 ]]; then
+        echo ""
+        echo "Step 4: Installation"
+        for addon in "${required_addons[@]}"; do
+            install_addon "$addon"
+        done
+    fi
+
+    # Step 5: Configure provider
+    configure_provider "$provider"
+
+    # Save configuration
+    save_config "DRUPAL_AI_PROVIDER" "$provider"
+    save_config "DRUPAL_AI_FUNCTIONALITIES" "$(IFS=,; echo "${functionalities[*]}")"
+
+    echo ""
+    log_success "🎉 Setup Complete!"
+    echo ""
+    echo "Next steps:"
+    echo "- Run \`ddev restart\` to apply changes"
+    echo "- Install Drupal AI modules: \`ddev composer require drupal/ai\`"
+    echo "- Configure at /admin/config/ai"
+    echo ""
+    log_info "💡 Security Tip:"
+    echo "For production, consider using DDEV environment variables:"
+    echo "  \`ddev config global --web-environment-add OPENAI_API_KEY=your_key_here\`"
+    echo "  Then remove the key from .ddev/.env.drupal-ai file"
+}
+
+# List available providers, functionalities and installed add-ons
+list_command() {
+    echo -e "${PURPLE}🤖 Drupal AI Status${NC}"
+    echo "==================="
+    echo ""
+
+    list_providers
+    echo ""
+    list_functionalities
+    echo ""
+    list_installed_addons
+}
+
+# Display help
+show_help() {
+    echo -e "${PURPLE}🤖 Drupal AI Add-on${NC}"
+    echo "==================="
+    echo ""
+    echo "Interactive CLI orchestration tool for Drupal AI workflows"
+    echo ""
+    echo "Usage: ddev drupal-ai [command]"
+    echo ""
+    echo "Commands:"
+    echo "  setup          Interactive wizard for complete AI stack setup"
+    echo "  list           Display available providers and installed add-ons"
+    echo "  help           Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  ddev drupal-ai setup"
+    echo "  ddev drupal-ai list"
+}
+
+# Main script logic
+main() {
+    check_dependencies
+    load_config
+
+    local command="${1:-help}"
+
+    case "$command" in
+        "setup")
+            setup_workflow
+            ;;
+        "list")
+            list_command
+            ;;
+        "help"|"--help"|"-h")
+            show_help
+            ;;
+        *)
+            log_error "Unknown command: $command"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+# Run main function with all arguments
+main "$@"
