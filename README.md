@@ -75,7 +75,7 @@ Step 2: Select Functionality
 Step 3: Dependencies Analysis
 📦 Required add-ons for your selection:
   - pgvector (for vector search) → Will install
-  
+
 ? Proceed with installation? (Y/n)
 
 Step 4: Installation
@@ -84,7 +84,7 @@ Step 4: Installation
 
 Step 5: Configuration
 ? OpenAI API Key: [secure input]
-? Default model (gpt-4): 
+? Default model (gpt-4):
 ? Enable vector search (Y/n): Y
 
 🎉 Setup Complete!
@@ -163,7 +163,7 @@ All configuration is now handled through the main command interface:
 # Configure providers and functionalities
 ddev drupal-ai setup
 
-# List available providers and installed components  
+# List available providers and installed components
 ddev drupal-ai list
 
 # Get help
@@ -295,5 +295,3 @@ bats tests/test.bats --show-output-of-passing-tests --verbose-run
 ## Credits
 
 **Contributed and maintained by [@Drupal-AI](https://github.com/Drupal-AI)**
-
-Based on the [ddev-addon-template](https://github.com/ddev/ddev-addon-template)
