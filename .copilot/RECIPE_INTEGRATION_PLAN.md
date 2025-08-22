@@ -59,6 +59,13 @@ functionalities:
     required_addons: ["robertoperuzzo/ddev-unstructured"]
     drupal_modules: ["ai", "ai_documents"]
     drupal_recipes: ["ai-document-processing"]
+
+  ai-agents-chatbot:
+    name: "AI Agents Chatbot"
+    description: "Interactive AI chatbot with agent evaluation capabilities"
+    required_addons: []
+    drupal_modules: ["ai", "ai_agents"]
+    drupal_recipes: ["ai_agents_chatbot_evaluation_recipe"]  # Real recipe for PoC!
 ```
 
 ### 2. Enhanced CLI Wizard Integration
@@ -76,7 +83,7 @@ install_drupal_modules() {
     local functionalities=("$@")
 
     echo ""
-    echo "Step 6: Installing Additional Drupal Modules"
+    echo "Step 7: Installing Additional Drupal Modules"
 
     local all_modules=()
 
@@ -126,6 +133,34 @@ install_drupal_modules() {
 }
 ```
 
+#### Function: Install Drupal Site
+
+```bash
+# Function to install Drupal with standard profile
+# This is required before recipes can be applied
+install_drupal_site() {
+    echo ""
+    echo "Step 5: Installing Drupal"
+
+    log_step "Installing Drupal with standard profile"
+
+    # Check if Drupal is already installed
+    if ddev drush status bootstrap 2>/dev/null | grep -q "Successful"; then
+        log_info "Drupal is already installed, skipping installation"
+        return
+    fi
+
+    # Install Drupal with standard profile
+    if ddev drush site:install standard --account-name=admin --account-pass=admin -y --no-interaction; then
+        log_success "Drupal installed successfully with admin/admin credentials"
+        log_info "You can access the site at your DDEV URL with admin/admin"
+    else
+        log_error "Failed to install Drupal - cannot proceed with recipe installation"
+        exit 1
+    fi
+}
+```
+
 #### Function: Install Functionality Recipes
 
 ```bash
@@ -134,7 +169,7 @@ install_functionality_recipes() {
     local functionalities=("$@")
 
     echo ""
-    echo "Step 5: Installing Drupal Recipes"
+    echo "Step 6: Installing Drupal Recipes"
 
     for functionality in "${functionalities[@]}"; do
         local recipes
@@ -190,7 +225,7 @@ apply_wizard_configurations() {
     local functionalities=("$@")
 
     echo ""
-    echo "Step 7: Applying Wizard-Based Configurations"
+    echo "Step 8: Applying Wizard-Based Configurations"
 
     # Apply provider-specific configurations to AI modules using the provider chosen in Step 1
     log_info "Configuring AI modules for provider: ${provider}"
@@ -242,6 +277,12 @@ apply_functionality_wizard_config() {
             ddev drush config:set ai_documents.settings default_provider "${provider}" --no-interaction || true
             ddev drush config:set ai_documents.settings extraction_service "unstructured" --no-interaction || true
             ;;
+        "ai-agents-chatbot")
+            # Configure AI agents chatbot with the selected provider (PoC functionality)
+            ddev drush config:set ai_agents.settings default_provider "${provider}" --no-interaction || true
+            ddev drush config:set ai_agents.settings chatbot_enabled true --no-interaction || true
+            log_info "AI Agents Chatbot configured - access via /admin/config/ai/agents"
+            ;;
     esac
 
     log_info "Configuration applied for ${functionality}"
@@ -280,14 +321,17 @@ setup_workflow() {
         done
     fi
 
-    # Step 5: Install recipes and apply recipe configurations (NEW)
+    # Step 5: Install Drupal with standard profile (NEW)
+    install_drupal_site
+
+    # Step 6: Install recipes and apply recipe configurations (NEW)
     install_functionality_recipes "${functionalities[@]}"
 
-    # Step 6: Install additional Drupal modules (NEW)
+    # Step 7: Install additional Drupal modules (NEW)
     # Only installs modules that aren't already provided by recipes
     install_drupal_modules "${functionalities[@]}"
 
-    # Step 7: Apply wizard-based configurations (NEW)
+    # Step 8: Apply wizard-based configurations (NEW)
     # Use the provider and functionality choices from Steps 1-2 to configure the installed recipes/modules
     apply_wizard_configurations "$provider" "${functionalities[@]}"
 
@@ -318,18 +362,19 @@ Add this section after the existing "Quick Start" section:
 The add-on now supports Drupal recipes for complete AI environment setup. When you run `ddev drupal-ai setup`, the wizard will:
 
 1. Install required DDEV add-ons
-2. Configure your AI provider
-3. Install Drupal modules
-4. **Install and apply Drupal recipes** (NEW)
+2. **Install Drupal with standard profile** (NEW)
+3. **Install and apply Drupal recipes** (NEW)
+4. Install additional Drupal modules
 5. Apply configuration overrides based on your setup
 
 ### How Recipes Work
 
 For each selected functionality, the system will:
 
-1. Install the corresponding Drupal recipe via `ddev drush composer require drupal/[recipe-name]`
-2. Apply the recipe using `ddev drush recipe:apply [recipe-name]`
-3. Override specific configurations based on your provider and setup choices
+1. Install Drupal using `ddev drush site:install standard --account-name=admin --account-pass=admin -y`
+2. Install the corresponding Drupal recipe via `ddev drush composer require drupal/[recipe-name]`
+3. Apply the recipe using `ddev drush recipe:apply [recipe-name]`
+4. Override specific configurations based on your provider and setup choices
 
 ### Available Recipe Integrations
 
@@ -339,6 +384,7 @@ For each selected functionality, the system will:
 - **Q&A System**: `drupal/ai-qa-system` - Knowledge base functionality
 - **Code Assistant**: `drupal/ai-code-assistant` - Code generation tools
 - **Document Processing**: `drupal/ai-document-processing` - File processing workflows
+- **AI Agents Chatbot**: `drupal/ai_agents_chatbot_evaluation_recipe` - Interactive AI chatbot with evaluation capabilities (**PoC Ready!**)
 
 ### Fallback Behavior
 
@@ -375,6 +421,60 @@ The setup wizard now follows a "one-shot" approach:
 7. **Clean Architecture**: No configuration file management, pure "one-shot" approach
 8. **Standard Drupal Experience**: Subsequent configuration changes use Drupal's built-in tools
 
+## Proof of Concept (PoC) Implementation
+
+### AI Agents Chatbot Recipe - First Test Case
+
+The **AI Agents Chatbot** functionality uses the existing [`ai_agents_chatbot_evaluation_recipe`](https://www.drupal.org/project/ai_agents_chatbot_evaluation_recipe) from Drupal.org as our first real-world test case.
+
+#### Why This Recipe is Perfect for PoC:
+
+1. **Real Recipe**: Published on Drupal.org, not theoretical
+2. **AI-Focused**: Specifically designed for AI agent evaluation
+3. **Community Project**: Already follows Drupal recipe standards
+4. **Complete Functionality**: Provides full chatbot setup with evaluation tools
+5. **Test Case**: Perfect for validating our recipe integration approach
+
+#### PoC Implementation Flow:
+
+```bash
+# User selects "AI Agents Chatbot" in the wizard
+ddev drupal-ai setup
+# 7. AI Agents Chatbot
+# Your selection: 7
+
+# System executes:
+# Step 5: Install Drupal
+ddev drush site:install standard --account-name=admin --account-pass=admin -y
+
+# Step 6: Install and apply recipe
+ddev drush composer require drupal/ai_agents_chatbot_evaluation_recipe
+ddev drush recipe:apply ai_agents_chatbot_evaluation_recipe
+
+# Step 8: Configure with selected AI provider
+ddev drush config:set ai_agents.settings default_provider "openai"
+
+# Result: Fully configured AI chatbot with evaluation capabilities
+```
+
+#### Expected PoC Outcomes:
+
+- ✅ **Recipe Discovery**: System can find and install the recipe via Composer
+- ✅ **Recipe Application**: Recipe applies successfully with default configuration
+- ✅ **Functionality Testing**: Chatbot interface is accessible and functional
+- ✅ **Provider Integration**: Selected AI provider works with the chatbot
+- ✅ **Fallback Testing**: System handles recipe unavailability gracefully
+
+#### PoC Success Criteria:
+
+1. Recipe installs without errors
+2. Chatbot interface is accessible in Drupal admin
+3. AI provider integration works correctly
+4. User can interact with the chatbot immediately after setup
+5. Configuration can be further customized through Drupal admin
+
+This PoC will validate our entire recipe integration architecture using a real, production-ready recipe from the Drupal community.
+
 ## Files to Modify
 
 ### Modified Files:
@@ -385,17 +485,27 @@ The setup wizard now follows a "one-shot" approach:
 ### Implementation Steps:
 1. Update `functionalities.yaml` with recipe definitions only
 2. Add new functions to `commands/web/drupal-ai` for recipe management and wizard-based configuration
-3. Integrate recipe installation into existing setup workflow
-4. Apply provider and functionality configurations directly during setup
-5. Update documentation to explain recipe functionality and one-shot setup approach
-6. Test with available recipes and ensure fallback behavior works
+3. **Add Drupal installation step** - Install Drupal with standard profile before recipes
+4. Integrate recipe installation into existing setup workflow
+5. Apply provider and functionality configurations directly during setup
+6. Update documentation to explain recipe functionality and one-shot setup approach
+7. **Implement PoC with AI Agents Chatbot recipe** - Test with real Drupal.org recipe
+8. Test with available recipes and ensure fallback behavior works
 
 ## Testing Scenarios
 
+### Standard Testing
 1. **Recipe Available**: Recipe installs successfully, configuration overrides applied
 2. **Recipe Unavailable**: System falls back to module-only installation gracefully
 3. **Recipe Install Fails**: System continues with module installation and logs warning
 4. **Configuration Override Fails**: System logs warning but continues setup
 5. **Mixed Success**: Some recipes work, others fall back - system handles gracefully
 
-This implementation provides immediate value by leveraging Drupal's recipe ecosystem while maintaining the robust, user-friendly experience of the existing CLI wizard.
+### PoC Testing (AI Agents Chatbot)
+6. **Real Recipe Installation**: `drupal/ai_agents_chatbot_evaluation_recipe` installs via Composer
+7. **Recipe Application**: Recipe applies successfully using `drush recipe:apply`
+8. **Functionality Verification**: Chatbot interface is accessible and functional
+9. **Provider Integration**: Selected AI provider integrates correctly with chatbot
+10. **End-to-End Testing**: User can interact with chatbot immediately after setup
+
+This implementation provides immediate value by leveraging Drupal's recipe ecosystem while maintaining the robust, user-friendly experience of the existing CLI wizard. The AI Agents Chatbot PoC validates the entire approach using a real, production-ready recipe.
