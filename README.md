@@ -5,6 +5,18 @@
 
 # DDEV Drupal AI Add-on
 
+> ⚠️ Important — Proof of Concept (PoC)
+>
+> This repository is an early Proof of Concept and not yet feature-complete (expect bugs and
+> incomplete functionality). The interactive setup wizard (`ddev drupal-ai setup`) currently
+> creates a configuration file at `${DDEV_APPROOT}/.ddev/.env.drupal-ai` containing your AI
+> provider settings. The next step
+> in development is to automatically spin up a local Drupal environment with AI modules
+> configured based on your wizard selections.
+>
+> We're actively seeking reviewers and contributors to help complete this project. Please
+> open issues or pull requests on GitHub if you'd like to help.
+
 ## Overview
 
 This add-on provides an interactive CLI orchestration tool for Drupal AI workflows within your [DDEV](https://ddev.com/) project. It acts as a meta-tool that streamlines the setup and orchestration of AI capabilities in Drupal development environments.
