@@ -7,12 +7,26 @@
 
 > ⚠️ Important — Proof of Concept (PoC)
 >
-> This repository is an early Proof of Concept and not yet feature-complete (expect bugs and
-> incomplete functionality). The interactive setup wizard (`ddev drupal-ai setup`) currently
-> creates a configuration file at `${DDEV_APPROOT}/.ddev/.env.drupal-ai` containing your AI
-> provider settings. The next step
-> in development is to automatically spin up a local Drupal environment with AI modules
-> configured based on your wizard selections.
+> This repository is an early Proof of Concept and not yet feature-complete. Expect bugs and
+> incomplete functionality. The interactive setup wizard (`ddev drupal-ai setup`) currently
+> creates a configuration file at `${DDEV_APPROOT}/.ddev/drupal-ai.setup.yaml` containing your AI
+> provider settings.
+>
+> ```yaml
+> # Example .ddev/drupal-ai.setup.yaml
+> openai_api_key: "sk-..."
+> openai_model: "gpt-4"
+> openai_base_url: "https://api.openai.com/v1"
+> drupal_ai_provider: "openai"
+> drupal_ai_functionalities: "vector-search"
+> ```
+>
+> The next step in development is to automatically spin up a local Drupal
+> environment with AI modules configured based on your wizard selections.
+>
+> **🔒 Security Note**: The current setup stores API keys in a YAML file that should never be
+> committed to version control. Future development will include secure secret management
+> options like DDEV environment variables, external secret stores, or encrypted configuration.
 >
 > We're actively seeking reviewers and contributors to help complete this project. Please
 > open issues or pull requests on GitHub if you'd like to help.
@@ -150,22 +164,22 @@ Next steps:
 
 ### Environment Variables
 
-Configuration is stored in `.ddev/.env.drupal-ai`. Key variables include:
+Configuration is stored in `.ddev/drupal-ai.setup.yaml`. Key variables include:
 
-```bash
+```yaml
 # Provider Configuration
-DRUPAL_AI_PROVIDER=openai
-DRUPAL_AI_FUNCTIONALITIES=vector-search,content-generation
+drupal_ai_provider: "openai"
+drupal_ai_functionalities: "vector-search,content-generation"
 
 # OpenAI Configuration
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4
-OPENAI_BASE_URL=https://api.openai.com/v1
+openai_api_key: "sk-..."
+openai_model: "gpt-4"
+openai_base_url: "https://api.openai.com/v1"
 
 # Database Configuration
-POSTGRES_DB=drupal_ai
-POSTGRES_USER=drupal_ai
-POSTGRES_PASSWORD=drupal_ai
+postgres_db: "drupal_ai"
+postgres_user: "drupal_ai"
+postgres_password: "drupal_ai"
 ```
 
 ### Manual Configuration
@@ -271,7 +285,7 @@ ddev drupal-ai setup
 To reset all AI configuration, simply delete the configuration file and run setup again:
 
 ```bash
-rm .ddev/.env.drupal-ai
+rm .ddev/drupal-ai.setup.yaml
 ddev drupal-ai setup
 ```
 
