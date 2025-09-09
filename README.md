@@ -1,5 +1,61 @@
 [![add-on registry](https://img.shields.io/badge/DDEV-Add--on_Registry-blue)](https://addons.ddev.com)
-[![tests](https://github.com/Drupal-AI/ddev-drupal-ai/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Drupal-AI/ddev-drupal-ai/actions/workflows/tests.yml?query=branch%3Amain)
+[![tests](httpNext steps:
+- Run `ddev restart` to apply changes
+- Install Drupal AI modules: `ddev composer require drupal/ai`
+- Configure at /admin/config/ai
+- **Secure your API keys** (see Security section below)
+```
+
+## Security
+
+### API Key Management
+
+⚠️ **Important**: API keys are stored in `.ddev/drupal-ai.setup.yaml` which is automatically added to `.gitignore`. However, for enhanced security, consider these alternatives:
+
+#### Option 1: DDEV Environment Variables (Recommended)
+```bash
+# Set API keys as DDEV environment variables
+ddev config global --web-environment-add OPENAI_API_KEY=your_actual_key_here
+
+# Remove the key from the YAML file
+yq eval 'del(.openai_api_key)' -i .ddev/drupal-ai.setup.yaml
+```
+
+#### Option 2: Local Environment Variables
+```bash
+# Add to your shell profile (.bashrc, .zshrc, etc.)
+export OPENAI_API_KEY="your_actual_key_here"
+
+# DDEV will automatically inherit these variables
+```
+
+#### Option 3: External Secret Management
+For team environments, consider:
+- **Doppler**: `doppler secrets download --no-file --format env`
+- **HashiCorp Vault**: Integration with DDEV
+- **AWS Secrets Manager**: For cloud-based projects
+- **Azure Key Vault**: For Microsoft Azure environments
+
+### Security Best Practices
+
+1. **Never commit API keys to version control**
+2. **Use different keys for development/staging/production**
+3. **Rotate keys regularly**
+4. **Monitor API key usage in your provider dashboard**
+5. **Use environment-specific configurations**
+6. **Consider using key restrictions/scopes when available**
+
+### Checking Your Security
+
+```bash
+# Verify your YAML file doesn't contain sensitive data before committing
+cat .ddev/drupal-ai.setup.yaml
+
+# Check if the file is properly ignored
+git status --ignored
+
+# Remove any accidentally committed keys
+git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch .ddev/drupal-ai.setup.yaml' --prune-empty --tag-name-filter cat -- --allgithub.com/Drupal-AI/ddev-drupal-ai/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Drupal-AI/ddev-drupal-ai/actions/workflows/tests.yml?query=branch%3Amain)
 [![last commit](https://img.shields.io/github/last-commit/Drupal-AI/ddev-drupal-ai)](https://github.com/Drupal-AI/ddev-drupal-ai/commits)
 [![release](https://img.shields.io/github/v/release/Drupal-AI/ddev-drupal-ai)](https://github.com/Drupal-AI/ddev-drupal-ai/releases/latest)
 
